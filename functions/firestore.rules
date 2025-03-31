@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 🔹 自分のユーザーデータのみ読み書き可能
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 🔹 シフト希望データ（schedules）のルール
+    match /schedules/{scheduleId} {
+      // 🔹 新規作成時：自分のシフト希望を作成OK
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+
+      // 🔹 既存データの読み取り・更新：自分のシフト希望のみOK
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+
+       allow read: if request.auth != null;  // 認証済みユーザーなら取得できる
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;  // 作成者のみ編集可能
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "127631882515",
+    "project_id": "poker-first-5f294",
+    "storage_bucket": "poker-first-5f294.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:127631882515:android:24c9010612db5f452e02e6",
+        "android_client_info": {
+          "package_name": "com.realapp.poker_first"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYhXAbSYBGAyd2bs3cDII2Yx7VoCD5Fm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
