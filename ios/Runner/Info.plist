@@ -28,6 +28,10 @@
 	<string>LaunchScreen</string>
 	<key>NSFaceIDUsageDescription</key>
     <string>アプリでの認証のためにFace IDを使用します。</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>QRコード画像を保存するためにフォトライブラリへのアクセスを許可してください。</string>
+    <key>NSCameraUsageDescription</key>
+    <string>QRコードを読み取るためにカメラを使用します。</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>

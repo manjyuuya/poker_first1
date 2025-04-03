@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "_flutterfire_internals",
-      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/_flutterfire_internals-1.3.50",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/_flutterfire_internals-1.3.54",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -50,8 +50,32 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "cloud_functions",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/cloud_functions-5.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "cloud_functions_platform_interface",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/cloud_functions_platform_interface-5.6.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "cloud_functions_web",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/cloud_functions_web-4.10.11",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "collection",
       "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/collection-1.19.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "crypto",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/crypto-3.0.6",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -99,7 +123,7 @@
     },
     {
       "name": "firebase_core",
-      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_core-3.10.1",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_core-3.13.0",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -111,7 +135,25 @@
     },
     {
       "name": "firebase_core_web",
-      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_core_web-2.19.0",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_core_web-2.22.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "firebase_storage",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_storage-12.4.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_storage_platform_interface",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_storage_platform_interface-5.2.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_storage_web",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_storage_web-3.10.12",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -150,6 +192,12 @@
       "rootUri": "file:///Users/kawaiyuya/development/flutter/packages/flutter_web_plugins",
       "packageUri": "lib/",
       "languageVersion": "3.7"
+    },
+    {
+      "name": "http",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/http-1.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
     },
     {
       "name": "http_parser",
@@ -218,6 +266,18 @@
       "languageVersion": "3.2"
     },
     {
+      "name": "logging",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/logging-1.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "mailer",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/mailer-6.4.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "matcher",
       "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/matcher-0.12.17",
       "packageUri": "lib/",
@@ -236,10 +296,34 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "mime",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/mime-2.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
       "name": "path",
       "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/path-1.9.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
+    },
+    {
+      "name": "path_provider",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/path_provider-2.1.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "path_provider_android",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/path_provider_android-2.2.16",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
+      "name": "path_provider_foundation",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/path_provider_foundation-2.4.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
     },
     {
       "name": "path_provider_linux",
@@ -270,6 +354,18 @@
       "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/plugin_platform_interface-2.1.8",
       "packageUri": "lib/",
       "languageVersion": "3.0"
+    },
+    {
+      "name": "qr",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/qr-3.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "qr_flutter",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/qr_flutter-4.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.19"
     },
     {
       "name": "shared_preferences",
@@ -404,10 +500,10 @@
       "languageVersion": "3.6"
     }
   ],
-  "generated": "2025-03-31T07:08:17.722055Z",
+  "generated": "2025-04-03T07:29:50.274315Z",
   "generator": "pub",
-  "generatorVersion": "3.7.0",
+  "generatorVersion": "3.7.2",
   "flutterRoot": "file:///Users/kawaiyuya/development/flutter",
-  "flutterVersion": "3.29.0",
+  "flutterVersion": "3.29.2",
   "pubCache": "file:///Users/kawaiyuya/.pub-cache"
 }

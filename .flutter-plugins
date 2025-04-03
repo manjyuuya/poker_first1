@@ -1,15 +1,22 @@
 # This is a generated file; do not edit or check into version control.
 cloud_firestore=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/cloud_firestore-5.6.2/
 cloud_firestore_web=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/cloud_firestore_web-4.4.2/
+cloud_functions=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/cloud_functions-5.4.0/
+cloud_functions_web=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/cloud_functions_web-4.10.11/
 firebase_auth=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_auth-5.4.1/
 firebase_auth_web=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_auth_web-5.13.7/
-firebase_core=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_core-3.10.1/
-firebase_core_web=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_core_web-2.19.0/
+firebase_core=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_core-3.13.0/
+firebase_core_web=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_core_web-2.22.0/
+firebase_storage=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_storage-12.4.5/
+firebase_storage_web=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_storage_web-3.10.12/
 flutter_plugin_android_lifecycle=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.24/
 local_auth=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/local_auth-2.3.0/
 local_auth_android=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/local_auth_android-1.0.46/
 local_auth_darwin=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/local_auth_darwin-1.4.3/
 local_auth_windows=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/local_auth_windows-1.0.11/
+path_provider=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/path_provider-2.1.5/
+path_provider_android=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/path_provider_android-2.2.16/
+path_provider_foundation=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/path_provider_foundation-2.4.1/
 path_provider_linux=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/path_provider_linux-2.2.1/
 path_provider_windows=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/path_provider_windows-2.3.0/
 shared_preferences=/Users/kawaiyuya/.pub-cache/hosted/pub.dev/shared_preferences-2.5.2/
