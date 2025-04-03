@@ -6,7 +6,8 @@ import 'package:poker_first/createAccount2.dart';
 import 'package:poker_first/staffsView/staffsHome.dart';
 import 'package:poker_first/usersView/usersScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'biometric_auth.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -19,67 +20,80 @@ class _LoginState extends State<Login> {
   final GlobalKey<ScaffoldMessengerState> _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _loginIdController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  bool _isPasswordVisible = false;
+  final TextEditingController _pinController = TextEditingController();
   bool _isLoading = false;
-  final BiometricAuth biometricAuth = BiometricAuth();
 
-  void _loginWithFirestoreAndAuth() async {
+  void _showSnackbar(BuildContext context, String message) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    });
+  }
+
+  void _loginWithAuthFirst() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
       try {
-        String loginIdInput = _loginIdController.text.trim();
-        String passwordInput = _passwordController.text.trim();
+        // 現在のユーザーが認証されているか確認
+        User? user = FirebaseAuth.instance.currentUser;
+        if (user == null) {
+          // ユーザーが認証されていない場合、エラーメッセージを表示
+          setState(() => _isLoading = false);
+          _showSnackbar(context, "認証されていないユーザーです");
+          return;
+        }
 
-        // FirestoreからログインIDでユーザー情報を検索
+        String loginIdInput = _loginIdController.text.trim();
+        String pinInput = _pinController.text.trim();
+        String hashedPin = sha256.convert(utf8.encode(pinInput)).toString();
+        String fixedPassword = "YourFixedPassword123"; // 🔴 Firebase Auth に登録されている固定パスワード
+
+        // 🔴 Firestore からログインIDで検索
         QuerySnapshot querySnapshot = await FirebaseFirestore.instance
             .collection('users')
             .where('loginId', isEqualTo: loginIdInput)
+            .where('hashedPin', isEqualTo: hashedPin)
             .limit(1)
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
           var userDoc = querySnapshot.docs.first;
           String? email = userDoc['email'];
+          String uid = userDoc['uid'];
 
           if (email != null) {
-            // Firebase Auth でログイン
+            // 🔴 Firebase Authentication でログイン
             UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
               email: email,
-              password: passwordInput,
+              password: fixedPassword,
             );
 
             User? user = userCredential.user;
 
             if (user != null) {
-              // ユーザー情報を再読み込み
-              await user.reload();
-              User? refreshedUser = FirebaseAuth.instance.currentUser;
-
-              if (refreshedUser != null) {
-                String uid = refreshedUser.uid;
-                print("Firebase Auth ログイン成功: $uid");
-
-                await _saveUserUID(uid);
-                await _navigateToUserScreen(uid);
-              } else {
-                throw Exception("ログイン後のユーザー情報が取得できませんでした");
-              }
+              await _saveUserUID(uid);
+              await _navigateToUserScreen(userDoc);
             } else {
-              throw Exception("Firebase Auth ログイン後にユーザーが見つかりません");
+              throw Exception("ログインに失敗しました");
             }
           } else {
-            throw Exception("メールアドレスが登録されていません");
+            throw Exception("メールアドレスが見つかりません");
           }
         } else {
-          throw Exception("ユーザーが見つかりません");
+          throw Exception("ログインIDまたはPINが間違っています");
         }
-      } catch (e) {
+      } on FirebaseAuthException catch (e) {
+        // Firebase Authentication のエラー処理
+        print("Error Code: ${e.code}");
+        print("Error Message: ${e.message}");
         setState(() => _isLoading = false);
-        _scaffoldKey.currentState?.showSnackBar(
-          SnackBar(content: Text("ログイン失敗: ${e.toString()}")),
-        );
+        _showSnackbar(context, "ログイン失敗: ${e.message ?? '不明なエラー'}");
+      } catch (e) {
+        // その他のエラー処理
+        setState(() => _isLoading = false);
+        _showSnackbar(context, "ログイン失敗: ${e.toString()}");
       }
     }
   }
@@ -90,106 +104,92 @@ class _LoginState extends State<Login> {
     await prefs.setBool('hasLoggedInBefore', true);
   }
 
-  Future<void> _navigateToUserScreen(String uid) async {
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+  Future<void> _navigateToUserScreen(DocumentSnapshot userDoc) async {
+    String role = userDoc['role'];
+    Widget nextScreen;
 
-    if (userDoc.exists) {
-      String role = userDoc['role'];
-      Widget nextScreen;
-
-      switch (role) {
-        case 'user':
-          nextScreen = UsersScreen();
-          break;
-        case 'staff':
-          nextScreen = StaffsHome();
-          break;
-        case 'admin':
-          nextScreen = OwnersHome();
-          break;
-        default:
-          throw Exception("不明なロール: $role");
-      }
-
-      setState(() => _isLoading = false);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => nextScreen),
-      );
-    } else {
-      throw Exception("ユーザー情報が見つかりません");
+    switch (role) {
+      case 'user':
+        nextScreen = UsersScreen();
+        break;
+      case 'staff':
+        nextScreen = StaffsHome();
+        break;
+      case 'admin':
+        nextScreen = OwnersHome();
+        break;
+      default:
+        throw Exception("不明なロール: $role");
     }
+
+    setState(() => _isLoading = false);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => nextScreen),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return ScaffoldMessenger(
+    return Scaffold(
       key: _scaffoldKey,
-      child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.lock, size: 80, color: Colors.blue),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "ログイン",
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.lock, size: 80, color: Colors.blue),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "ログイン",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _loginIdController,
+                    decoration: const InputDecoration(
+                      labelText: "ログインID",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
                     ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: _loginIdController,
-                      decoration: const InputDecoration(
-                        labelText: "ログインID",
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person),
-                      ),
-                      validator: (value) =>
-                      value!.isEmpty ? "ログインIDを入力してください" : null,
+                    validator: (value) =>
+                    value!.isEmpty ? "ログインIDを入力してください" : null,
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    controller: _pinController,
+                    decoration: const InputDecoration(
+                      labelText: "PIN (4桁)",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.lock),
                     ),
-                    const SizedBox(height: 15),
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: "パスワード",
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.lock),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                          ),
-                          onPressed: () => setState(
-                                  () => _isPasswordVisible = !_isPasswordVisible),
-                        ),
-                      ),
-                      obscureText: !_isPasswordVisible,
-                    ),
-                    const SizedBox(height: 20),
-                    _isLoading
-                        ? const CircularProgressIndicator()
-                        : ElevatedButton(
-                      onPressed: _loginWithFirestoreAndAuth,
-                      child: const Text("ログイン"),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => CreateAccount2()),
-                        );
-                      },
-                      child: const Text("新規登録はこちら"),
-                    ),
-                  ],
-                ),
+                    keyboardType: TextInputType.number,
+                    obscureText: true,
+                    validator: (value) =>
+                    value!.length != 4 ? "PINは4桁で入力してください" : null,
+                  ),
+                  const SizedBox(height: 20),
+                  _isLoading
+                      ? const CircularProgressIndicator()
+                      : ElevatedButton(
+                    onPressed: _loginWithAuthFirst,
+                    child: const Text("ログイン"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => CreateAccount2()),
+                      );
+                    },
+                    child: const Text("新規登録はこちら"),
+                  ),
+                ],
               ),
             ),
           ),
