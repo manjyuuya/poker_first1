@@ -86,6 +86,9 @@ class _CreateAccount2State extends State<CreateAccount2> {
             'hashedPin': hashedPin,
             'role': 'user',
             'createdAt': FieldValue.serverTimestamp(),
+            'point': 0,
+            'visitCount': "後で処理を追加、lastVisitDateも",
+            'lastVisitDate': FieldValue.serverTimestamp(),
           });
 
           await _generateQRCodeAndSendEmail(user.uid, loginId, email);
@@ -203,7 +206,7 @@ class _CreateAccount2State extends State<CreateAccount2> {
                   TextFormField(
                     controller: _birthMonthDayController,
                     decoration: const InputDecoration(
-                      labelText: "BirthDay (MMDD)",
+                      labelText: "BirthDay (0401)",
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.calendar_today),
                     ),
