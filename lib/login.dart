@@ -116,7 +116,7 @@ class _LoginState extends State<Login> {
         nextScreen = StaffsHome();
         break;
       case 'admin':
-        nextScreen = OwnersHome();
+        nextScreen = AdminsHome();
         break;
       default:
         throw Exception("不明なロール: $role");

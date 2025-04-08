@@ -104,7 +104,7 @@ class _Login2State extends State<Login2> {
       } else if (role == 'staff') {
         nextScreen = StaffsHome();
       } else if (role == 'admin') {
-        nextScreen = OwnersHome();
+        nextScreen = AdminsHome();
       } else {
         throw Exception("不明なロール: $role");
       }
