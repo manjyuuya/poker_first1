@@ -1,3 +1,4 @@
+import 'package:bcrypt/bcrypt.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -6,8 +7,6 @@ import 'package:poker_first/createAccount2.dart';
 import 'package:poker_first/staffsView/staffsHome.dart';
 import 'package:poker_first/usersView/usersScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:crypto/crypto.dart';
-import 'dart:convert';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -36,43 +35,37 @@ class _LoginState extends State<Login> {
       setState(() => _isLoading = true);
 
       try {
-        // 現在のユーザーが認証されているか確認
-        User? user = FirebaseAuth.instance.currentUser;
-        if (user == null) {
-          // ユーザーが認証されていない場合、エラーメッセージを表示
-          setState(() => _isLoading = false);
-          _showSnackbar(context, "認証されていないユーザーです");
-          return;
-        }
-
         String loginIdInput = _loginIdController.text.trim();
         String pinInput = _pinController.text.trim();
-        String hashedPin = sha256.convert(utf8.encode(pinInput)).toString();
-        String fixedPassword = "YourFixedPassword123"; // 🔴 Firebase Auth に登録されている固定パスワード
+        String fixedPassword = "YourFixedPassword123";
 
-        // 🔴 Firestore からログインIDで検索
+        // Firestore から loginId でユーザー検索（hashedPin は使わない）
         QuerySnapshot querySnapshot = await FirebaseFirestore.instance
             .collection('users')
             .where('loginId', isEqualTo: loginIdInput)
-            .where('hashedPin', isEqualTo: hashedPin)
             .limit(1)
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
           var userDoc = querySnapshot.docs.first;
+          String storedHashedPin = userDoc['hashedPin'];
           String? email = userDoc['email'];
           String uid = userDoc['uid'];
 
+          // 🔐 bcryptでPINチェック
+          bool isPinCorrect = BCrypt.checkpw(pinInput, storedHashedPin);
+
+          if (!isPinCorrect) throw Exception("PINが正しくありません");
+
           if (email != null) {
-            // 🔴 Firebase Authentication でログイン
             UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
               email: email,
               password: fixedPassword,
             );
-
             User? user = userCredential.user;
 
             if (user != null) {
+              await updateLastLogin(user);
               await _saveUserUID(uid);
               await _navigateToUserScreen(userDoc);
             } else {
@@ -82,21 +75,29 @@ class _LoginState extends State<Login> {
             throw Exception("メールアドレスが見つかりません");
           }
         } else {
-          throw Exception("ログインIDまたはPINが間違っています");
+          throw Exception("ログインIDが見つかりません");
         }
       } on FirebaseAuthException catch (e) {
-        // Firebase Authentication のエラー処理
-        print("Error Code: ${e.code}");
-        print("Error Message: ${e.message}");
         setState(() => _isLoading = false);
         _showSnackbar(context, "ログイン失敗: ${e.message ?? '不明なエラー'}");
       } catch (e) {
-        // その他のエラー処理
         setState(() => _isLoading = false);
         _showSnackbar(context, "ログイン失敗: ${e.toString()}");
       }
     }
   }
+
+  Future<void> updateLastLogin(User user) async {
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'lastLogin': FieldValue.serverTimestamp(),
+      });
+      print('lastLoginが更新されました');
+    } catch (e) {
+      print('lastLoginの更新失敗: $e');
+    }
+  }
+
 
   Future<void> _saveUserUID(String uid) async {
     final prefs = await SharedPreferences.getInstance();

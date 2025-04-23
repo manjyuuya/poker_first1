@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:poker_first/adminsView/adminAttendanceScanPage.dart';
 import 'package:poker_first/adminsView/adminsPost.dart';
+import 'package:poker_first/adminsView/attendanceSearchPage.dart';
 import 'package:poker_first/adminsView/shiftApproval.dart';
 import 'package:poker_first/usersView/userDetailPage.dart';
 
@@ -132,6 +134,16 @@ class _AdminsHomeState extends State<AdminsHome> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("管理者画面"),
+        leading: IconButton(
+          icon: const Icon(Icons.qr_code_scanner),
+          tooltip: 'QR打刻',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AttendanceScanPage()),
+            );
+          },
+        ),
         actions: [
           Builder(
             builder: (context) {
@@ -145,11 +157,15 @@ class _AdminsHomeState extends State<AdminsHome> {
                     case 2:
                       _navigateTo(context, const AdminsPost());
                       break;
+                    case 3:
+                      _navigateTo(context, AttendanceSearchPage());
+                      break;
                   }
                 },
                 itemBuilder: (context) => const [
                   PopupMenuItem(value: 1, child: Text("シフト承認")),
                   PopupMenuItem(value: 2, child: Text("投稿")),
+                  PopupMenuItem(value: 3, child: Text("勤怠記録")),
                 ],
                 color: Colors.white,
                 elevation: 8,
@@ -162,56 +178,58 @@ class _AdminsHomeState extends State<AdminsHome> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _pokerNameController,
-              decoration: const InputDecoration(labelText: 'PokerName'),
-            ),
-            TextField(
-              controller: _loginIdController,
-              decoration: const InputDecoration(labelText: 'Login ID'),
-            ),
-            TextField(
-              controller: _birth4DigitsController,
-              decoration: const InputDecoration(labelText: '誕生日（0401）'),
-              keyboardType: TextInputType.number,
-              maxLength: 4,
-            ),
-            TextButton(
-              onPressed: () => _pickDate((d) => setState(() => _lastVisitAfterDate = d)),
-              child: Text(_lastVisitAfterDate == null ? '最終来店日以降' : '最終来店日: \${_lastVisitAfterDate!.toLocal()}'.split(' ')[0]),
-            ),
-            TextField(
-              controller: _visitCountController,
-              decoration: const InputDecoration(labelText: '来店回数（〇回以上）'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _pointsController,
-              decoration: const InputDecoration(labelText: 'ポイント（〇pt以上）'),
-              keyboardType: TextInputType.number,
-            ),
-            Row(
-              children: [
-                ElevatedButton(onPressed: _searchUsers, child: const Text('検索')),
-                const SizedBox(width: 8),
-                ElevatedButton(onPressed: _resetFields, child: const Text('リセット')),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (_isLoading)
-              const CircularProgressIndicator()
-            else if (_searchResults.isEmpty)
-              const Text("検索結果がありません")
-            else
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _searchResults.length,
-                  itemBuilder: (context, index) => _buildUserItem(_searchResults[index]),
-                ),
-              )
-          ],
+        child:SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: _pokerNameController,
+                decoration: const InputDecoration(labelText: 'PokerName'),
+              ),
+              TextField(
+                controller: _loginIdController,
+                decoration: const InputDecoration(labelText: 'Login ID'),
+              ),
+              TextField(
+                controller: _birth4DigitsController,
+                decoration: const InputDecoration(labelText: '誕生日（0401）'),
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+              ),
+              TextButton(
+                onPressed: () => _pickDate((d) => setState(() => _lastVisitAfterDate = d)),
+                child: Text(_lastVisitAfterDate == null ? '最終来店日以降' : '最終来店日: \${_lastVisitAfterDate!.toLocal()}'.split(' ')[0]),
+              ),
+              TextField(
+                controller: _visitCountController,
+                decoration: const InputDecoration(labelText: '来店回数（〇回以上）'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: _pointsController,
+                decoration: const InputDecoration(labelText: 'ポイント（〇pt以上）'),
+                keyboardType: TextInputType.number,
+              ),
+              Row(
+                children: [
+                  ElevatedButton(onPressed: _searchUsers, child: const Text('検索')),
+                  const SizedBox(width: 8),
+                  ElevatedButton(onPressed: _resetFields, child: const Text('リセット')),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (_isLoading)
+                const CircularProgressIndicator()
+              else if (_searchResults.isEmpty)
+                const Text("検索結果がありません")
+              else
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _searchResults.length,
+                    itemBuilder: (context, index) => _buildUserItem(_searchResults[index]),
+                  ),
+                )
+            ],
+          ),
         ),
       ),
     );

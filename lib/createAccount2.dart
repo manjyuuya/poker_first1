@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:crypto/crypto.dart';
+import 'package:bcrypt/bcrypt.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -30,8 +30,7 @@ class _CreateAccount2State extends State<CreateAccount2> {
   bool _isLoading = false;
 
   String _hashPIN(String pin) {
-    var bytes = utf8.encode(pin);
-    return sha256.convert(bytes).toString();
+    return BCrypt.hashpw(pin, BCrypt.gensalt());
   }
 
   Future<bool> _isPokerNameTaken(String pokerName) async {
@@ -88,7 +87,7 @@ class _CreateAccount2State extends State<CreateAccount2> {
             'createdAt': FieldValue.serverTimestamp(),
             'point': 0,
             'visitCount': "後で処理を追加、lastVisitDateも",
-            'lastVisitDate': FieldValue.serverTimestamp(),
+            'lastLogin': FieldValue.serverTimestamp(),
           });
 
           await _generateQRCodeAndSendEmail(user.uid, loginId, email);
@@ -108,8 +107,8 @@ class _CreateAccount2State extends State<CreateAccount2> {
 
   Future<void> _generateQRCodeAndSendEmail(String uid, String loginId, String email) async {
     try {
-      // QRコードデータ
-      String qrData = jsonEncode({'loginId': loginId, 'uid': uid});
+      // QRコードデータに 'uid' を含める
+      String qrData = jsonEncode({'uid': uid, 'loginId': loginId});
 
       // QRコード画像を生成
       final qrValidationResult = QrValidator.validate(
@@ -157,6 +156,7 @@ class _CreateAccount2State extends State<CreateAccount2> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -200,7 +200,11 @@ class _CreateAccount2State extends State<CreateAccount2> {
                       prefixIcon: Icon(Icons.lock),
                     ),
                     keyboardType: TextInputType.number,
-                    validator: (value) => value == null || value.length != 4 ? "PINは4桁の数字で入力してください" : null,
+                    validator: (value) {
+                      if (value == null || value.length != 4) return "PINは4桁の数字で入力してください";
+                      if (!RegExp(r'^\d{4}$').hasMatch(value)) return "PINは数字のみで入力してください";
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 15),
                   TextFormField(

@@ -11,56 +11,50 @@ class ShiftRequestPage extends StatefulWidget {
 
 class _ShiftRequestPageState extends State<ShiftRequestPage> {
   final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _shiftController = TextEditingController();
+  final List<Map<String, dynamic>> _shiftList = [];
 
-  // 開始時間と終了時間を保存する変数
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
 
-  /// 📅 日付選択ダイアログ
+  DateTime? _selectedDate;
+
   Future<void> _selectDate() async {
-    DateTime? picked = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(), // デフォルトで今日の日付を選択
-      firstDate: DateTime.now(), // 今日以降を選択可能
-      lastDate: DateTime(2099), // 未来の制限（任意）
-      locale: const Locale('ja', 'JP'), // 日本語に設定
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2099),
+      locale: const Locale('ja', 'JP'),
     );
 
     if (picked != null) {
       setState(() {
-        _dateController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+        _selectedDate = picked;
+        _dateController.text =
+        "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       });
     }
   }
 
-  /// ⏰ 開始時間選択ダイアログ
   Future<void> _selectStartTime() async {
-    TimeOfDay? picked = await showTimePicker(
+    final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
-
     if (picked != null) {
       setState(() {
         _startTime = picked;
-        _updateShiftTime(); // 開始時間が選ばれたらUIに反映
       });
     }
   }
 
-  /// ⏰ 終了時間選択ダイアログ
   Future<void> _selectEndTime() async {
-    if (_startTime == null) {
-      // 開始時間が選択されていない場合、終了時間を選択できないようにする
-      return;
-    }
+    if (_startTime == null) return;
 
-    // 開始時間から1分以上遅い時間を制限
-    TimeOfDay? picked = await showTimePicker(
+    final picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: _startTime!.hour, minute: _startTime!.minute + 1), // 開始時間から1分後から開始
-      builder: (BuildContext context, Widget? child) {
+      initialTime: _startTime!,
+      builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
           child: child!,
@@ -68,123 +62,179 @@ class _ShiftRequestPageState extends State<ShiftRequestPage> {
       },
     );
 
-    if (picked != null && (picked.hour > _startTime!.hour || (picked.hour == _startTime!.hour && picked.minute > _startTime!.minute))) {
+    if (picked != null) {
       setState(() {
         _endTime = picked;
-        _updateShiftTime(); // 終了時間が選ばれたらUIに反映
       });
-    } else {
+    }
+  }
+
+  void _addShiftToList() {
+    if (_selectedDate == null || _startTime == null || _endTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("終了時間は開始時間より遅く選択してください")),
+        const SnackBar(content: Text("日付・開始・終了時間をすべて選択してください")),
       );
-    }
-  }
-
-  /// 開始時間と終了時間をセットして、希望シフトのテキストに反映
-  void _updateShiftTime() {
-    if (_startTime != null && _endTime != null) {
-      setState(() {
-        _shiftController.text = "${_startTime!.hour.toString().padLeft(2, '0')}:${_startTime!.minute.toString().padLeft(2, '0')}-"
-            "${_endTime!.hour.toString().padLeft(2, '0')}:${_endTime!.minute.toString().padLeft(2, '0')}";
-      });
-    } else if (_startTime != null) {
-      setState(() {
-        // 開始時刻が選択された場合、終了時刻が未選択でも「-」を表示
-        _shiftController.text = "${_startTime!.hour.toString().padLeft(2, '0')}:${_startTime!.minute.toString().padLeft(2, '0')}-";
-      });
-    } else if (_endTime != null) {
-      setState(() {
-        // 終了時刻のみが選択された場合は「〜」で表示
-        _shiftController.text = "〜${_endTime!.hour.toString().padLeft(2, '0')}:${_endTime!.minute.toString().padLeft(2, '0')}";
-      });
-    }
-  }
-
-  // 時間の再設定をするためのリセット機能
-  void _resetShiftTimes() {
-    setState(() {
-      _startTime = null;
-      _endTime = null;
-      _shiftController.clear();
-    });
-  }
-
-  void _submitShiftRequest() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      print("ユーザーがログインしていません");
       return;
     }
 
-    await FirebaseFirestore.instance.collection('schedules').add({
-      'userId': user.uid,
-      'userName': user.displayName ?? 'Unknown',
-      'role': "staff",
-      'date': _dateController.text,
-      'shift': _shiftController.text,
-      'confirmed': false,
-      'denied': false,
-      'approvedBy': null,
+    final start = DateTime(
+      _selectedDate!.year,
+      _selectedDate!.month,
+      _selectedDate!.day,
+      _startTime!.hour,
+      _startTime!.minute,
+    );
+
+    // 🔽 翌日になるかを判定（24時超え対応）
+    DateTime end = DateTime(
+      _selectedDate!.year,
+      _selectedDate!.month,
+      _selectedDate!.day,
+      _endTime!.hour,
+      _endTime!.minute,
+    );
+    if (_endTime!.hour < _startTime!.hour) {
+      end = end.add(const Duration(days: 1));
+    }
+
+    final shiftText =
+        "${_startTime!.format(context)} - ${_endTime!.format(context)}";
+
+    setState(() {
+      _shiftList.add({
+        'start': start,
+        'end': end,
+        'shift': shiftText,
+      });
+      _startTime = null;
+      _endTime = null;
     });
+  }
+
+  Future<void> _submitShiftRequests() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _selectedDate == null || _shiftList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("シフトを入力してください")),
+      );
+      return;
+    }
+
+    final dateKey = _dateController.text.replaceAll("-", "");
+
+    // 🔽 すでに提出済みのシフト件数を取得（同日＋同ユーザーの件数）
+    final existingSnapshot = await FirebaseFirestore.instance
+        .collection('shifts')
+        .where('userId', isEqualTo: user.uid)
+        .where('date', isEqualTo: _dateController.text)
+        .get();
+
+    final existingCount = existingSnapshot.docs.length;
+
+    final batch = FirebaseFirestore.instance.batch();
+
+    for (var i = 0; i < _shiftList.length; i++) {
+      final shift = _shiftList[i];
+      final docId = "${user.uid}_${dateKey}_${existingCount + i}";
+
+      final docRef = FirebaseFirestore.instance.collection('shifts').doc(docId);
+
+      batch.set(docRef, {
+        'userId': user.uid,
+        'userName': user.displayName ?? 'Unknown',
+        'role': 'staff',
+        'date': _dateController.text,
+        'shift': shift['shift'],
+        'start': Timestamp.fromDate(shift['start']),
+        'end': Timestamp.fromDate(shift['end']),
+        'confirmed': false,
+        'denied': false,
+        'approvedBy': null,
+      });
+    }
+
+    await batch.commit();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("シフト希望を提出しました")),
     );
 
-    _dateController.clear();
-    _shiftController.clear();
+    setState(() {
+      _shiftList.clear();
+      _dateController.clear();
+      _selectedDate = null;
+    });
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("シフト希望提出")),
+      appBar: AppBar(title: const Text("シフト希望提出")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _dateController,
-              readOnly: true, // 手動入力を防ぐ
+              readOnly: true,
               decoration: const InputDecoration(
                 labelText: "希望日",
-                suffixIcon: Icon(Icons.calendar_today), // カレンダーアイコン
+                suffixIcon: Icon(Icons.calendar_today),
               ),
-              onTap: _selectDate, // タップで日付選択
+              onTap: _selectDate,
             ),
             const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _shiftController,
-                    readOnly: true, // 手動入力を防ぐ
-                    decoration: const InputDecoration(
-                      labelText: "希望シフト",
-                      suffixIcon: Icon(Icons.access_time), // 時計アイコン
-                    ),
-                    onTap: () {
-                      // 最初に開始時間を選んだ後に終了時間を選択
-                      if (_startTime == null) {
-                        _selectStartTime();
-                      } else {
-                        _selectEndTime();
-                      }
-                    },
+                  child: ElevatedButton(
+                    onPressed: _selectStartTime,
+                    child: Text(_startTime == null
+                        ? "開始時間を選択"
+                        : "開始: ${_startTime!.format(context)}"),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _selectEndTime,
+                    child: Text(_endTime == null
+                        ? "終了時間を選択"
+                        : "終了: ${_endTime!.format(context)}"),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _addShiftToList,
+              child: const Text("シフトを追加"),
+            ),
             const SizedBox(height: 20),
-            // リセットボタンを追加
-            if (_startTime != null && _endTime != null)
-              ElevatedButton(
-                onPressed: _resetShiftTimes,
-                child: const Text("時間を再設定"),
+            if (_shiftList.isNotEmpty)
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _shiftList.length,
+                  itemBuilder: (context, index) {
+                    final shift = _shiftList[index];
+                    return ListTile(
+                      title: Text("${shift['shift']}"),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          setState(() {
+                            _shiftList.removeAt(index);
+                          });
+                        },
+                      ),
+                    );
+                  },
+                ),
               ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: _submitShiftRequest,
+              onPressed: _submitShiftRequests,
               child: const Text("提出"),
             ),
           ],
@@ -193,3 +243,4 @@ class _ShiftRequestPageState extends State<ShiftRequestPage> {
     );
   }
 }
+
