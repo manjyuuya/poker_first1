@@ -33,14 +33,14 @@ class _MyShiftsPageState extends State<MyShiftsPage> {
     try {
       // **ログインユーザーのシフトを取得**
       QuerySnapshot myShiftsSnapshot = await FirebaseFirestore.instance
-          .collection('schedules')
+          .collection('shifts')
           .where('denied', isEqualTo: false)
           .where('userId', isEqualTo: user!.uid) // **ログインユーザーのみ**
           .get();
 
       // **他のスタッフの確定シフトを取得**
       QuerySnapshot confirmedShiftsSnapshot = await FirebaseFirestore.instance
-          .collection('schedules')
+          .collection('shifts')
           .where('denied', isEqualTo: false)
           .where('confirmed', isEqualTo: true) // **確定シフトのみ**
           .get();

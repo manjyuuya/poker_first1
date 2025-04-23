@@ -5,7 +5,7 @@ class ShiftApprovalPage extends StatelessWidget {
   const ShiftApprovalPage({super.key});
 
   void _approveShift(String docId, String ownerId) {
-    FirebaseFirestore.instance.collection('schedules').doc(docId).update({
+    FirebaseFirestore.instance.collection('shifts').doc(docId).update({
       'confirmed': true,
       'approvedBy': ownerId,
       'denied': false, // 否認されていないことを明示
@@ -13,7 +13,7 @@ class ShiftApprovalPage extends StatelessWidget {
   }
 
   void _denyShift(String docId) {
-    FirebaseFirestore.instance.collection('schedules').doc(docId).update({
+    FirebaseFirestore.instance.collection('shifts').doc(docId).update({
       'denied': true, // 否認フラグを立てる
       'confirmed': false,
     });
@@ -25,7 +25,7 @@ class ShiftApprovalPage extends StatelessWidget {
       appBar: AppBar(title: Text("シフト承認")),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
-            .collection('schedules')
+            .collection('shifts')
             .where('confirmed', isEqualTo: false) // 未承認のシフト
             .snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -58,7 +58,7 @@ class ShiftApprovalPage extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () => _denyShift(doc.id),
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.red), // 赤いボタン
-                      child: Text("否認"),
+                      child: Text("却下"),
                     ),
                   ],
                 ),
