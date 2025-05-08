@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-class StaffDetailPage extends StatefulWidget {
+class StaffAttendancePage extends StatefulWidget {
   final String uid;
 
-  const StaffDetailPage({Key? key, required this.uid}) : super(key: key);
+  const StaffAttendancePage({Key? key, required this.uid}) : super(key: key);
 
   @override
-  State<StaffDetailPage> createState() => _StaffDetailPageState();
+  State<StaffAttendancePage> createState() => _StaffDetailPageState();
 }
 
-class _StaffDetailPageState extends State<StaffDetailPage> {
+class _StaffDetailPageState extends State<StaffAttendancePage> {
   Map<String, dynamic>? _userData;
   List<Map<String, dynamic>> _attendanceRecords = [];
   bool _isLoading = true;
@@ -87,6 +87,7 @@ class _StaffDetailPageState extends State<StaffDetailPage> {
           'late': data['late'] ?? false,
           'overtimeMinutes': data['overtimeMinutes'] ?? 0,
           'shortageMinutes': data['shortageMinutes'] ?? 0,
+          'totalMinutes': data['totalMinutes'] ?? 0,
         };
       }).toList());
 
@@ -144,9 +145,10 @@ class _StaffDetailPageState extends State<StaffDetailPage> {
                   children: [
                     Text('出勤: ${record['clockIn']}'),
                     Text('退勤: ${record['clockOut']}'),
+                    Text('勤務時間: ${(record['totalMinutes'] ~/ 60)}時間 ${(record['totalMinutes'] % 60)}分'),
                     Text('遅刻: ${record['late'] ? '有' : '無'}'),
                     if ((record['overtime'] ?? 0) > 0)
-                      Text('残業: ${record['overtime'] ~/ 60}時間 ${record['overtime'] % 60}分'),
+                      Text('超過: ${record['overtime'] ~/ 60}時間 ${record['overtime'] % 60}分'),
                     if ((record['shortageMinutes'] ?? 0) > 0)
                       Text('不足: ${record['shortageMinutes'] ~/ 60}時間 ${record['shortageMinutes'] % 60}分'),
                     Text('シフト: ${record['shift']}'),

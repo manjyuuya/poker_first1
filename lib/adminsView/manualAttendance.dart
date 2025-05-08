@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:bcrypt/bcrypt.dart';
 import 'package:intl/intl.dart';
 
-import 'adminAttendanceScanPage.dart';
+import 'adminAttendanceScan.dart';
 
 class ManualAttendancePage extends StatefulWidget {
   const ManualAttendancePage({super.key});

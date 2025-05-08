@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'announcementListPage.dart';
+import 'announcementList.dart';
 
 class AdminsPost extends StatefulWidget {
   const AdminsPost({super.key});

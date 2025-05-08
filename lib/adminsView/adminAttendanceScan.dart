@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:poker_first/adminsView/manualAttendancePage.dart';
+import 'package:poker_first/adminsView/manualAttendance.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:collection/collection.dart';
 
@@ -190,7 +190,6 @@ class _AttendanceScanPageState extends State<AttendanceScanPage> {
   }
 }
 
-
 Future<Map<String, dynamic>> handleAttendance(String userId, {
   bool isManual = false,
   DateTime? manualClockOut,
@@ -212,7 +211,6 @@ Future<Map<String, dynamic>> handleAttendance(String userId, {
     final docData = unresolvedDoc.data();
     final clockIn = (docData['clockIn'] as Timestamp).toDate();
 
-    // 🔁 シフトを取得
     final shiftQuery = await FirebaseFirestore.instance
         .collection("shifts")
         .where("userId", isEqualTo: userId)
@@ -227,13 +225,11 @@ Future<Map<String, dynamic>> handleAttendance(String userId, {
           clockIn.isBefore(end.add(const Duration(hours: 5)));
     });
 
-    // ✅ シフトが存在し、今が退勤予定時間 ±5時間以内 → 自動退勤
     if (matchedShift != null && manualClockOut == null) {
       final shiftEnd = (matchedShift['end'] as Timestamp).toDate();
       final diffHours = now.difference(shiftEnd).inHours.abs();
 
       if (diffHours <= 5) {
-        // 自動退勤で更新
         final actualMinutes = now.difference(clockIn).inMinutes;
         final scheduledMinutes = shiftEnd.difference((matchedShift['start'] as Timestamp).toDate()).inMinutes;
 
@@ -245,17 +241,21 @@ Future<Map<String, dynamic>> handleAttendance(String userId, {
           shortageMinutes = scheduledMinutes - actualMinutes;
         }
 
+        final totalMinutes = now.difference(clockIn).inMinutes;
+        final nightMinutes = calculateNightMinutes(clockIn, now);
+
         await attendanceRef.doc(unresolvedDoc.id).update({
           'clockOut': Timestamp.fromDate(now),
           'overtimeMinutes': overtimeMinutes,
           'shortageMinutes': shortageMinutes,
+          'totalMinutes': totalMinutes,
+          'nightMinutes': nightMinutes,
         });
 
         return {'type': '退勤（自動）', 'time': now};
       }
     }
 
-    // ⛔ 自動退勤できない → 手動退勤時間を求める
     if (manualClockOut == null) {
       return {
         'type': '未退勤あり',
@@ -265,7 +265,6 @@ Future<Map<String, dynamic>> handleAttendance(String userId, {
       };
     }
 
-    // ✅ 手動退勤バリデーション
     if (manualClockOut.isBefore(clockIn)) {
       return {
         'type': 'エラー',
@@ -294,10 +293,15 @@ Future<Map<String, dynamic>> handleAttendance(String userId, {
       }
     }
 
+    final totalMinutes = manualClockOut.difference(clockIn).inMinutes;
+    final nightMinutes = calculateNightMinutes(clockIn, manualClockOut);
+
     await attendanceRef.doc(unresolvedDoc.id).update({
       'clockOut': Timestamp.fromDate(manualClockOut),
       'overtimeMinutes': overtimeMinutes,
       'shortageMinutes': shortageMinutes,
+      'totalMinutes': totalMinutes,
+      'nightMinutes': nightMinutes,
     });
 
     return {'type': '退勤（手動）', 'time': manualClockOut};
@@ -315,7 +319,6 @@ Future<Map<String, dynamic>> handleAttendance(String userId, {
   final shifts = shiftQuery.docs;
 
   if (!doc.exists) {
-    // ✅ 出勤処理
     final matchedShift = shifts.firstWhereOrNull((doc) {
       final start = (doc['start'] as Timestamp).toDate();
       final end = (doc['end'] as Timestamp).toDate();
@@ -348,7 +351,6 @@ Future<Map<String, dynamic>> handleAttendance(String userId, {
 
     return {'type': '出勤', 'time': now};
   } else {
-    // ✅ 通常の退勤処理
     final docData = doc.data();
     final clockIn = (docData?['clockIn'] as Timestamp).toDate();
     final clockOut = now;
@@ -376,12 +378,43 @@ Future<Map<String, dynamic>> handleAttendance(String userId, {
       }
     }
 
+    final totalMinutes = clockOut.difference(clockIn).inMinutes;
+    final nightMinutes = calculateNightMinutes(clockIn, clockOut);
+
     await docRef.update({
       'clockOut': Timestamp.fromDate(clockOut),
       'overtimeMinutes': overtimeMinutes,
       'shortageMinutes': shortageMinutes,
+      'totalMinutes': totalMinutes,
+      'nightMinutes': nightMinutes,
     });
 
     return {'type': '退勤', 'time': now};
   }
 }
+
+int calculateNightMinutes(DateTime clockIn, DateTime clockOut) {
+  const int nightStartHour = 22;
+  const int nightEndHour = 5;
+
+  int totalNightSeconds = 0;
+  DateTime current = clockIn;
+
+  while (current.isBefore(clockOut)) {
+    final next = current.add(const Duration(minutes: 1));
+    final hour = current.hour;
+
+    // 深夜帯判定：22:00〜24:00 or 0:00〜5:00
+    if (hour >= nightStartHour || hour < nightEndHour) {
+      // 1分未満の端数がある場合の対応（最後のループなど）
+      final end = next.isAfter(clockOut) ? clockOut : next;
+      totalNightSeconds += end.difference(current).inSeconds;
+    }
+
+    current = next;
+  }
+
+  // 分単位に切り捨て変換
+  return totalNightSeconds ~/ 60;
+}
+
