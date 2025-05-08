@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:poker_first/adminsView/adminAttendanceScanPage.dart';
+import 'package:poker_first/adminsView/adminAttendanceScan.dart';
 import 'package:poker_first/adminsView/adminsPost.dart';
-import 'package:poker_first/adminsView/attendanceSearchPage.dart';
+import 'package:poker_first/adminsView/attendanceSearch.dart';
+import 'package:poker_first/adminsView/salaryCalculation.dart';
 import 'package:poker_first/adminsView/shiftApproval.dart';
+import 'package:poker_first/adminsView/staffList.dart';
 import 'package:poker_first/usersView/userDetailPage.dart';
 
 class AdminsHome extends StatefulWidget {
@@ -160,12 +162,20 @@ class _AdminsHomeState extends State<AdminsHome> {
                     case 3:
                       _navigateTo(context, AttendanceSearchPage());
                       break;
+                    case 4:
+                      _navigateTo(context, SalaryCalculationPage());
+                      break;
+                    case 5:
+                      _navigateTo(context, StaffListPage());
+                      break;
                   }
                 },
                 itemBuilder: (context) => const [
                   PopupMenuItem(value: 1, child: Text("シフト承認")),
                   PopupMenuItem(value: 2, child: Text("投稿")),
                   PopupMenuItem(value: 3, child: Text("勤怠記録")),
+                  PopupMenuItem(value: 4, child: Text("給与計算")),
+                  PopupMenuItem(value: 5, child: Text("スタッフリスト")),
                 ],
                 color: Colors.white,
                 elevation: 8,

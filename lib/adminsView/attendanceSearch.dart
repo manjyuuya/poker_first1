@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:poker_first/adminsView/staffDetailPage.dart';
+import 'package:poker_first/adminsView/salaryCalculation.dart';
+import 'package:poker_first/adminsView/staffAttendance.dart';
 
 class AttendanceSearchPage extends StatefulWidget {
   @override
@@ -311,7 +312,7 @@ class _AttendanceSearchPageState extends State<AttendanceSearchPage> {
                 Text('退勤: ${record['clockOut']}'),
                 Text('遅刻:${late ? '有' : '無'}'),
                 if ((overtime ?? 0) > 0)
-                  Text('残業: ${overtime ~/ 60}時間 ${overtime % 60}分'),
+                  Text('超過: ${overtime ~/ 60}時間 ${overtime % 60}分'),
                 if ((shortage ?? 0) > 0)
                   Text('不足: ${shortage ~/ 60}時間 ${shortage % 60}分'),
                 Text('シフト: ${record['shift']}'),
@@ -399,7 +400,7 @@ class _AttendanceSearchPageState extends State<AttendanceSearchPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => StaffDetailPage(uid: staff.uid),
+                      builder: (context) => StaffAttendancePage(uid: staff.uid),
                     ),
                   );
                 },
