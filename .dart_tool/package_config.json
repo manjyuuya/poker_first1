@@ -146,6 +146,24 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "firebase_messaging",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_messaging-15.2.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_messaging_platform_interface",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_messaging_platform_interface-4.6.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_messaging_web",
+      "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_messaging_web-3.10.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "firebase_storage",
       "rootUri": "file:///Users/kawaiyuya/.pub-cache/hosted/pub.dev/firebase_storage-12.4.5",
       "packageUri": "lib/",
@@ -518,10 +536,10 @@
       "languageVersion": "3.6"
     }
   ],
-  "generated": "2025-04-15T18:53:30.320241Z",
+  "generated": "2025-05-13T14:00:25.996342Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///Users/kawaiyuya/development/flutter",
-  "flutterVersion": "3.29.2",
+  "flutterVersion": "3.29.3",
   "pubCache": "file:///Users/kawaiyuya/.pub-cache"
 }

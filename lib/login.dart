@@ -1,6 +1,7 @@
 import 'package:bcrypt/bcrypt.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:poker_first/adminsView/adminsHome.dart';
 import 'package:poker_first/createAccount2.dart';
@@ -39,7 +40,6 @@ class _LoginState extends State<Login> {
         String pinInput = _pinController.text.trim();
         String fixedPassword = "YourFixedPassword123";
 
-        // Firestore から loginId でユーザー検索（hashedPin は使わない）
         QuerySnapshot querySnapshot = await FirebaseFirestore.instance
             .collection('users')
             .where('loginId', isEqualTo: loginIdInput)
@@ -52,9 +52,7 @@ class _LoginState extends State<Login> {
           String? email = userDoc['email'];
           String uid = userDoc['uid'];
 
-          // 🔐 bcryptでPINチェック
           bool isPinCorrect = BCrypt.checkpw(pinInput, storedHashedPin);
-
           if (!isPinCorrect) throw Exception("PINが正しくありません");
 
           if (email != null) {
@@ -67,6 +65,16 @@ class _LoginState extends State<Login> {
             if (user != null) {
               await updateLastLogin(user);
               await _saveUserUID(uid);
+
+             /* // 🔔 FCMトークン取得と保存処理
+              final fcmToken = await FirebaseMessaging.instance.getToken();
+              if (fcmToken != null) {
+                await FirebaseFirestore.instance.collection('users').doc(uid).update({
+                  'fcmToken': fcmToken,
+                });
+                print('FCMトークン保存成功: $fcmToken');
+              }*/
+
               await _navigateToUserScreen(userDoc);
             } else {
               throw Exception("ログインに失敗しました");
