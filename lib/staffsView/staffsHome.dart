@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:poker_first/staffsView/attendanceCorrection.dart';
 import 'package:poker_first/staffsView/myShift.dart';
 import 'package:poker_first/staffsView/shiftRequest.dart';
 import 'package:poker_first/staffsView/staffPost.dart';
@@ -39,13 +40,16 @@ class _StaffsHomeState extends State<StaffsHome> {
                     case 3:
                       _navigateTo(context, StaffPost());
                       break;
+                    case 4:
+                      _navigateTo(context, AttendanceCorrectionPage());
+                      break;
                   }
                 },
                 itemBuilder: (context) => [
                   PopupMenuItem(value: 1, child: Text("シフト申請",
                     style: TextStyle(
                       color: Colors.black,
-                      fontWeight: FontWeight.bold),)),
+                      fontWeight: FontWeight.bold))),
                   PopupMenuItem(value: 2, child: Text("シフト表",
                       style: TextStyle(
                       color: Colors.black,
@@ -54,6 +58,10 @@ class _StaffsHomeState extends State<StaffsHome> {
                       style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold))),
+                  PopupMenuItem(value: 4, child: Text("勤怠修正申請",
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold))),
                 ],
                 color: Colors.white, // メニューの背景色
                 elevation: 8, // 影をつける
