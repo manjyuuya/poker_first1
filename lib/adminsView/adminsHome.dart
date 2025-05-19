@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:poker_first/adminsView/adminAttendanceScan.dart';
 import 'package:poker_first/adminsView/adminsPost.dart';
+import 'package:poker_first/adminsView/correctionApproval.dart';
 import 'package:poker_first/adminsView/attendanceSearch.dart';
 import 'package:poker_first/adminsView/salaryCalculation.dart';
 import 'package:poker_first/adminsView/shiftApproval.dart';
@@ -154,28 +155,32 @@ class _AdminsHomeState extends State<AdminsHome> {
                 onSelected: (value) {
                   switch (value) {
                     case 1:
-                      _navigateTo(context, const ShiftApprovalPage());
+                      _navigateTo(context, ShiftApprovalPage());
                       break;
-                    case 2:
-                      _navigateTo(context, const AdminsPost());
-                      break;
+                    /*case 2:
+                      _navigateTo(context, AdminsPost());
+                      break;*/
                     case 3:
                       _navigateTo(context, AttendanceSearchPage());
                       break;
                     case 4:
-                      _navigateTo(context, SalaryCalculationPage());
+                      _navigateTo(context, CorrectionApprovalPage());
                       break;
                     case 5:
+                      _navigateTo(context, SalaryCalculationPage());
+                      break;
+                    case 6:
                       _navigateTo(context, StaffListPage());
                       break;
                   }
                 },
                 itemBuilder: (context) => const [
                   PopupMenuItem(value: 1, child: Text("シフト承認")),
-                  PopupMenuItem(value: 2, child: Text("投稿")),
+                  //PopupMenuItem(value: 2, child: Text("投稿")),
                   PopupMenuItem(value: 3, child: Text("勤怠記録")),
-                  PopupMenuItem(value: 4, child: Text("給与計算")),
-                  PopupMenuItem(value: 5, child: Text("スタッフリスト")),
+                  PopupMenuItem(value: 4, child: Text("勤怠修正承認")),
+                  PopupMenuItem(value: 5, child: Text("給与計算")),
+                  PopupMenuItem(value: 6, child: Text("スタッフリスト")),
                 ],
                 color: Colors.white,
                 elevation: 8,

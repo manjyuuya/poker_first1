@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import admin from "firebase-admin";
 
 admin.initializeApp();
+const db = admin.firestore();
 
 export const someFunction = functions.firestore
   .document("users/{userId}")
@@ -56,7 +57,165 @@ export const deleteShiftOnDenial = functions.firestore
       console.error("PokerName チェックエラー:", error);
       throw new functions.https.HttpsError("internal", "PokerName チェックに失敗しました。");
     }
-  });
+  });　
+
+　export const onAttendanceCorrectionApproved = functions.firestore
+   .document("attendanceCorrections/{correctionId}")
+   .onUpdate(async (change, context) => {
+     const before = change.before.data();
+     const after = change.after.data();
+
+     console.log("Function triggered. Before status:", before.status, "After status:", after.status);
+
+     // ✅ ロック処理を追加（すでに approved / rejected 済みの場合はスキップ）
+     if (before.status === "approved" || before.status === "rejected") {
+       console.log("Already finalized (approved/rejected). Skipping update.");
+       return;
+     }
+
+     if (after.status === "approved") {
+       console.log("Correction approved. Proceeding with update.");
+
+       const userId = after.userId;
+
+       const dateObj = after.targetDate && after.targetDate.toDate
+         ? after.targetDate.toDate()
+         : null;
+
+       if (!dateObj) {
+         console.error("Invalid targetDate timestamp.");
+         return;
+       }
+
+       const dateString = dateObj.toISOString().split("T")[0].replace(/-/g, "");
+
+       const clockInDate = after.requestedClockInDateTime && after.requestedClockInDateTime.toDate
+         ? after.requestedClockInDateTime.toDate()
+         : null;
+
+       const clockOutDate = after.requestedClockOutDateTime && after.requestedClockOutDateTime.toDate
+         ? after.requestedClockOutDateTime.toDate()
+         : null;
+
+       if (!clockInDate || !clockOutDate) {
+         console.error("Invalid clockIn or clockOut timestamp.");
+         return;
+       }
+
+       console.log("userId:", userId, "dateString:", dateString);
+       console.log("clockInDate:", clockInDate, "clockOutDate:", clockOutDate);
+
+       const attendanceRef = db.collection("attendances").doc(`${userId}_${dateString}`);
+       const attendanceSnap = await attendanceRef.get();
+
+       if (!attendanceSnap.exists) {
+         console.error("Attendance document not found:", `${userId}_${dateString}`);
+         return;
+       }
+
+       const attendanceData = attendanceSnap.data();
+       console.log("Fetched attendance data:", attendanceData);
+
+       const shiftId = attendanceData && attendanceData.shiftId;
+       if (!shiftId) {
+         console.error("No shiftId found in attendance document.");
+         return;
+       }
+
+       const shiftSnap = await db.collection("shifts").doc(shiftId).get();
+       if (!shiftSnap.exists) {
+         console.error("Shift not found:", shiftId);
+         return;
+       }
+
+       const shift = shiftSnap.data();
+       const scheduledStart = shift.start.toDate();
+       const scheduledEnd = shift.end.toDate();
+
+       console.log("Scheduled start:", scheduledStart, "Scheduled end:", scheduledEnd);
+
+       const totalMinutes = Math.floor((clockOutDate.getTime() - clockInDate.getTime()) / 60000);
+       console.log("Calculated totalMinutes:", totalMinutes);
+
+       // ✅ 深夜時間算出関数
+       const calculateNightMinutes = (clockInUtc, clockOutUtc) => {
+         let nightMinutes = 0;
+         let current = new Date(clockInUtc);
+         while (current < clockOutUtc) {
+           const jst = new Date(current.getTime() + 9 * 60 * 60 * 1000); // JST変換
+           const hour = jst.getHours();
+           if (hour >= 22 || hour < 5) {
+             nightMinutes++;
+           }
+           current.setMinutes(current.getMinutes() + 1);
+         }
+         return nightMinutes;
+       };
+
+       const nightMinutes = calculateNightMinutes(clockInDate, clockOutDate);
+       console.log("Calculated nightMinutes:", nightMinutes);
+
+       const late = clockInDate > scheduledStart;
+       console.log("Is late:", late);
+
+       let shortageMinutes = 0;
+       if (clockInDate > scheduledStart) {
+         shortageMinutes += Math.floor((clockInDate.getTime() - scheduledStart.getTime()) / 60000);
+       }
+       if (clockOutDate < scheduledEnd) {
+         shortageMinutes += Math.floor((scheduledEnd.getTime() - clockOutDate.getTime()) / 60000);
+       }
+       console.log("Calculated shortageMinutes:", shortageMinutes);
+
+       const overtimeMinutes = clockOutDate > scheduledEnd
+         ? Math.floor((clockOutDate.getTime() - scheduledEnd.getTime()) / 60000)
+         : 0;
+       console.log("Calculated overtimeMinutes:", overtimeMinutes);
+
+       await attendanceRef.set({
+         clockIn: admin.firestore.Timestamp.fromDate(clockInDate),
+         clockOut: admin.firestore.Timestamp.fromDate(clockOutDate),
+         totalMinutes,
+         nightMinutes,
+         late,
+         shortageMinutes,
+         overtimeMinutes
+       }, { merge: true });
+
+       console.log("Attendance document updated successfully.");
+     } else {
+       console.log("No status change to approved. Skipping update.");
+     }
+   });
+
+ export const onAttendanceCorrectionRejected = functions.firestore
+   .document("attendanceCorrections/{correctionId}")
+   .onUpdate(async (change, context) => {
+     const before = change.before.data();
+     const after = change.after.data();
+
+     console.log("Before status:", before.status, "After status:", after.status);
+
+     // ✅ ロック処理：すでに削除対象であればスキップ
+     if (before.status === "approved" || before.status === "rejected") {
+       console.log("Already finalized (approved/rejected). Skipping deletion.");
+       return;
+     }
+
+     if (after.status === "rejected") {
+       const docRef = change.after.ref;
+
+       try {
+         await docRef.delete();
+         console.log(`Deleted attendanceCorrection document ${context.params.correctionId}
+           because status changed to rejected.`);
+       } catch (error) {
+         console.error("Error deleting document:", error);
+       }
+     } else {
+       console.log("No status change to rejected. Skipping deletion.");
+     }
+   });
   /*// 出勤予定時刻の30分前に通知を送信
  export const sendShiftReminder = functions.pubsub
      .schedule("every 24 hours")  // 1日1回実行される（任意の時間を設定可能）
