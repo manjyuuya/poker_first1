@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:poker_first/accountingDashboard/accountingDashboardPage.dart';
 import 'package:poker_first/adminsView/adminAttendanceScan.dart';
 import 'package:poker_first/adminsView/adminsPost.dart';
 import 'package:poker_first/adminsView/correctionApproval.dart';
@@ -7,6 +8,8 @@ import 'package:poker_first/adminsView/attendanceSearch.dart';
 import 'package:poker_first/adminsView/salaryCalculation.dart';
 import 'package:poker_first/adminsView/shiftApproval.dart';
 import 'package:poker_first/adminsView/staffList.dart';
+import 'package:poker_first/accountingDashboard/expenseEntry.dart';
+import 'package:poker_first/accountingDashboard/salesEntry.dart';
 import 'package:poker_first/usersView/userDetailPage.dart';
 
 class AdminsHome extends StatefulWidget {
@@ -242,7 +245,14 @@ class _AdminsHomeState extends State<AdminsHome> {
                     itemCount: _searchResults.length,
                     itemBuilder: (context, index) => _buildUserItem(_searchResults[index]),
                   ),
-                )
+                ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                  onPressed: (){
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AccountingDashboardPage()));
+                  }, child: const Text("会計ダッシュボード")),
             ],
           ),
         ),
