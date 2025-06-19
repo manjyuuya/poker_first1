@@ -55,6 +55,7 @@ dependencies:
   firebase_messaging: ^15.2.5
   csv: ^6.0.0
   share_plus: ^11.0.0
+  image_picker: ^1.1.2
 
 
 
