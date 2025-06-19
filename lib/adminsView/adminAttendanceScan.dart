@@ -35,7 +35,8 @@ class _AttendanceScanPageState extends State<AttendanceScanPage> {
         final userId = data['uid'];
         await _startAttendanceFlow(userId);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("読み取りエラー")));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("読み取りエラー")));
         Navigator.pop(context);
       }
     });
@@ -50,9 +51,11 @@ class _AttendanceScanPageState extends State<AttendanceScanPage> {
     final result = await handleAttendance(userId);
 
     if (result['type'] == '未退勤あり') {
-      final manualTime = await _showManualClockOutDialog(result['clockIn'] as DateTime);
+      final manualTime = await _showManualClockOutDialog(
+          result['clockIn'] as DateTime);
       if (manualTime != null) {
-        final retry = await handleAttendance(userId, isManual: true, manualClockOut: manualTime);
+        final retry = await handleAttendance(
+            userId, isManual: true, manualClockOut: manualTime);
         if (retry['type'] == '退勤（手動）') {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("手動退勤を記録しました")));
@@ -71,14 +74,26 @@ class _AttendanceScanPageState extends State<AttendanceScanPage> {
       return;
     }
     if (result['type'] == '出勤') {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("出勤を記録しました")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("出勤を記録しました")));
       await Future.delayed(const Duration(milliseconds: 1500));
       if (mounted) Navigator.pop(context);
     } else if (result['type'] == '退勤') {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("退勤を記録しました")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("退勤を記録しました")));
       await Future.delayed(const Duration(milliseconds: 1500));
       if (mounted) Navigator.pop(context);
-    }// 正常出退勤後に戻る
+    } else if (result['type'] == '来店記録') {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("来店記録が完了しました")));
+      await Future.delayed(const Duration(milliseconds: 1500));
+      if (mounted) Navigator.pop(context);
+    } else if (result['type'] == '退店記録') {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("退店記録が完了しました")));
+        await Future.delayed(const Duration(milliseconds: 1500));
+        if (mounted) Navigator.pop(context);
+    }
   }
 
   Future<DateTime?> _showManualClockOutDialog(DateTime clockIn) async {
@@ -107,7 +122,8 @@ class _AttendanceScanPageState extends State<AttendanceScanPage> {
                         setState(() => selectedDate = picked);
                       }
                     },
-                    child: Text("日付選択: ${DateFormat('yyyy/MM/dd').format(selectedDate)}"),
+                    child: Text("日付選択: ${DateFormat('yyyy/MM/dd').format(
+                        selectedDate)}"),
                   ),
                   ElevatedButton(
                     onPressed: () async {
@@ -161,7 +177,8 @@ class _AttendanceScanPageState extends State<AttendanceScanPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ManualAttendancePage()),
+                MaterialPageRoute(
+                    builder: (context) => const ManualAttendancePage()),
               );
             },
           ),
@@ -198,198 +215,251 @@ Future<Map<String, dynamic>> handleAttendance(String userId, {
   final dateOnly = DateTime(now.year, now.month, now.day);
   final dateKey = "${userId}_${DateFormat('yyyyMMdd').format(dateOnly)}";
 
-  final attendanceRef = FirebaseFirestore.instance.collection("attendances");
+  // 🔍 ユーザーのロールを取得
+  final userDoc = await FirebaseFirestore.instance.collection("users").doc(userId).get();
+  final role = userDoc.data()?['role'];
 
-  // 🔍 未退勤（clockOut == null）データがあるかチェック
-  final unresolvedQuery = await attendanceRef
-      .where("userId", isEqualTo: userId)
-      .where("clockOut", isNull: true)
-      .get();
+  if (role == "staff") {
+    final attendanceRef = FirebaseFirestore.instance.collection("attendances");
 
-  if (unresolvedQuery.docs.isNotEmpty) {
-    final unresolvedDoc = unresolvedQuery.docs.first;
-    final docData = unresolvedDoc.data();
-    final clockIn = (docData['clockIn'] as Timestamp).toDate();
-
-    final shiftQuery = await FirebaseFirestore.instance
-        .collection("shifts")
+    final unresolvedQuery = await attendanceRef
         .where("userId", isEqualTo: userId)
-        .where("date", isGreaterThanOrEqualTo: DateFormat("yyyy-MM-dd").format(clockIn.subtract(const Duration(hours: 5))))
-        .where("date", isLessThanOrEqualTo: DateFormat("yyyy-MM-dd").format(clockIn.add(const Duration(hours: 5))))
+        .where("clockOut", isNull: true)
         .get();
 
-    final matchedShift = shiftQuery.docs.firstWhereOrNull((doc) {
-      final start = (doc['start'] as Timestamp).toDate();
-      final end = (doc['end'] as Timestamp).toDate();
-      return clockIn.isAfter(start.subtract(const Duration(hours: 5))) &&
-          clockIn.isBefore(end.add(const Duration(hours: 5)));
-    });
+    if (unresolvedQuery.docs.isNotEmpty) {
+      final unresolvedDoc = unresolvedQuery.docs.first;
+      final docData = unresolvedDoc.data();
+      final clockIn = (docData['clockIn'] as Timestamp).toDate();
 
-    if (matchedShift != null && manualClockOut == null) {
-      final shiftEnd = (matchedShift['end'] as Timestamp).toDate();
-      final diffHours = now.difference(shiftEnd).inHours.abs();
+      final shiftQuery = await FirebaseFirestore.instance
+          .collection("shifts")
+          .where("userId", isEqualTo: userId)
+          .where("date", isGreaterThanOrEqualTo: DateFormat("yyyy-MM-dd").format(clockIn.subtract(const Duration(hours: 5))))
+          .where("date", isLessThanOrEqualTo: DateFormat("yyyy-MM-dd").format(clockIn.add(const Duration(hours: 5))))
+          .get();
 
-      if (diffHours <= 5) {
-        final actualMinutes = now.difference(clockIn).inMinutes;
-        final scheduledMinutes = shiftEnd.difference((matchedShift['start'] as Timestamp).toDate()).inMinutes;
+      final matchedShift = shiftQuery.docs.firstWhereOrNull((doc) {
+        final start = (doc['start'] as Timestamp).toDate();
+        final end = (doc['end'] as Timestamp).toDate();
+        return clockIn.isAfter(start.subtract(const Duration(hours: 5))) &&
+            clockIn.isBefore(end.add(const Duration(hours: 5)));
+      });
 
-        int overtimeMinutes = 0;
-        int shortageMinutes = 0;
+      if (matchedShift != null && manualClockOut == null) {
+        final shiftEnd = (matchedShift['end'] as Timestamp).toDate();
+        final diffHours = now.difference(shiftEnd).inHours.abs();
+
+        if (diffHours <= 5) {
+          final actualMinutes = now.difference(clockIn).inMinutes;
+          final scheduledMinutes = shiftEnd.difference((matchedShift['start'] as Timestamp).toDate()).inMinutes;
+
+          int overtimeMinutes = 0;
+          int shortageMinutes = 0;
+          if (actualMinutes > scheduledMinutes) {
+            overtimeMinutes = actualMinutes - scheduledMinutes;
+          } else if (actualMinutes < scheduledMinutes) {
+            shortageMinutes = scheduledMinutes - actualMinutes;
+          }
+
+          final totalMinutes = now.difference(clockIn).inMinutes;
+          final nightMinutes = calculateNightMinutes(clockIn, now);
+
+          await attendanceRef.doc(unresolvedDoc.id).update({
+            'clockOut': Timestamp.fromDate(now),
+            'overtimeMinutes': overtimeMinutes,
+            'shortageMinutes': shortageMinutes,
+            'totalMinutes': totalMinutes,
+            'nightMinutes': nightMinutes,
+          });
+
+          return {'type': '退勤（自動）', 'time': now};
+        }
+      }
+
+      if (manualClockOut == null) {
+        return {
+          'type': '未退勤あり',
+          'clockIn': clockIn,
+          'docId': unresolvedDoc.id,
+          'message': '前回の退勤が未記録です。退勤時間を入力してください。'
+        };
+      }
+
+      if (manualClockOut.isBefore(clockIn)) {
+        return {
+          'type': 'エラー',
+          'message': '退勤時間は出勤時間より後に設定してください。'
+        };
+      }
+      if (manualClockOut.isAfter(now)) {
+        return {
+          'type': 'エラー',
+          'message': '退勤時間を未来に設定することはできません。'
+        };
+      }
+
+      int overtimeMinutes = 0;
+      int shortageMinutes = 0;
+      if (matchedShift != null) {
+        final shiftStart = (matchedShift['start'] as Timestamp).toDate();
+        final shiftEnd = (matchedShift['end'] as Timestamp).toDate();
+        final scheduledMinutes = shiftEnd.difference(shiftStart).inMinutes;
+        final actualMinutes = manualClockOut.difference(clockIn).inMinutes;
+
         if (actualMinutes > scheduledMinutes) {
           overtimeMinutes = actualMinutes - scheduledMinutes;
         } else if (actualMinutes < scheduledMinutes) {
           shortageMinutes = scheduledMinutes - actualMinutes;
         }
+      }
 
-        final totalMinutes = now.difference(clockIn).inMinutes;
-        final nightMinutes = calculateNightMinutes(clockIn, now);
+      final totalMinutes = manualClockOut.difference(clockIn).inMinutes;
+      final nightMinutes = calculateNightMinutes(clockIn, manualClockOut);
 
-        await attendanceRef.doc(unresolvedDoc.id).update({
-          'clockOut': Timestamp.fromDate(now),
-          'overtimeMinutes': overtimeMinutes,
-          'shortageMinutes': shortageMinutes,
-          'totalMinutes': totalMinutes,
-          'nightMinutes': nightMinutes,
+      await attendanceRef.doc(unresolvedDoc.id).update({
+        'clockOut': Timestamp.fromDate(manualClockOut),
+        'overtimeMinutes': overtimeMinutes,
+        'shortageMinutes': shortageMinutes,
+        'totalMinutes': totalMinutes,
+        'nightMinutes': nightMinutes,
+      });
+
+      return {'type': '退勤（手動）', 'time': manualClockOut};
+    }
+
+    final docRef = attendanceRef.doc(dateKey);
+    final doc = await docRef.get();
+
+    final shiftQuery = await FirebaseFirestore.instance
+        .collection("shifts")
+        .where("userId", isEqualTo: userId)
+        .where("date", isEqualTo: DateFormat("yyyy-MM-dd").format(dateOnly))
+        .get();
+    final shifts = shiftQuery.docs;
+
+    if (!doc.exists) {
+      final matchedShift = shifts.firstWhereOrNull((doc) {
+        final start = (doc['start'] as Timestamp).toDate();
+        final end = (doc['end'] as Timestamp).toDate();
+        return now.isAfter(start.subtract(const Duration(hours: 5))) &&
+            now.isBefore(end.add(const Duration(hours: 5)));
+      });
+
+      await docRef.set({
+        'userId': userId,
+        'date': Timestamp.fromDate(dateOnly),
+        'clockIn': Timestamp.fromDate(now),
+        'clockOut': null,
+        'isManual': isManual,
+        'late': false,
+        'absent': false,
+        'overtimeMinutes': 0,
+        'shortageMinutes': 0,
+        'shiftId': matchedShift?.id,
+      });
+
+      if (matchedShift != null) {
+        final shiftStart = (matchedShift['start'] as Timestamp).toDate();
+        if (now.isAfter(shiftStart)) {
+          await docRef.update({'late': true});
+        } else {
+          final earlyMinutes = shiftStart.difference(now).inMinutes;
+          await docRef.update({'overtimeMinutes': earlyMinutes});
+        }
+      }
+
+      return {'type': '出勤', 'time': now};
+    } else {
+      final docData = doc.data();
+      final clockIn = (docData?['clockIn'] as Timestamp).toDate();
+      final clockOut = now;
+
+      int overtimeMinutes = 0;
+      int shortageMinutes = 0;
+
+      final matchedShift = shifts.firstWhereOrNull((doc) {
+        final start = (doc['start'] as Timestamp).toDate();
+        final end = (doc['end'] as Timestamp).toDate();
+        return clockIn.isAfter(start.subtract(const Duration(hours: 5))) &&
+            clockIn.isBefore(end.add(const Duration(hours: 5)));
+      });
+
+      if (matchedShift != null) {
+        final shiftStart = (matchedShift['start'] as Timestamp).toDate();
+        final shiftEnd = (matchedShift['end'] as Timestamp).toDate();
+        final scheduledMinutes = shiftEnd.difference(shiftStart).inMinutes;
+        final actualMinutes = clockOut.difference(clockIn).inMinutes;
+
+        if (actualMinutes > scheduledMinutes) {
+          overtimeMinutes = actualMinutes - scheduledMinutes;
+        } else if (actualMinutes < scheduledMinutes) {
+          shortageMinutes = scheduledMinutes - actualMinutes;
+        }
+      }
+
+      final totalMinutes = clockOut.difference(clockIn).inMinutes;
+      final nightMinutes = calculateNightMinutes(clockIn, clockOut);
+
+      await docRef.update({
+        'clockOut': Timestamp.fromDate(clockOut),
+        'overtimeMinutes': overtimeMinutes,
+        'shortageMinutes': shortageMinutes,
+        'totalMinutes': totalMinutes,
+        'nightMinutes': nightMinutes,
+      });
+
+      return {'type': '退勤', 'time': now};
+    }
+
+  } else if (role == "user") {
+    final userRef = FirebaseFirestore.instance.collection("users").doc(userId);
+    final isStaying = userDoc.data()?['isStaying'] ?? false;
+
+    if (!isStaying) {
+      await userRef.update({
+        'isStaying': true,
+      });
+      await userRef.collection("visitHistory").add({
+        'visitedAt': Timestamp.fromDate(now),
+        'note': '',
+      });
+      return {'type': '来店記録', 'time': now};
+    } else {
+      await userRef.update({
+        'isStaying': false,
+      });
+      final visitHistoryQuery = await userRef
+          .collection('visitHistory')
+          .orderBy('visitedAt', descending: true)
+          .limit(1)
+          .get();
+
+      if (visitHistoryQuery.docs.isNotEmpty) {
+        final latestVisitDoc = visitHistoryQuery.docs.first;
+        final data = latestVisitDoc.data();
+        final visitedAtTimestamp = data['visitedAt'] as Timestamp?;
+        DateTime? visitedAt;
+        if (visitedAtTimestamp != null) {
+          visitedAt = visitedAtTimestamp.toDate();
+        }
+        final leftAt = now;
+        int? stayMinutes;
+        if (visitedAt != null) {
+          stayMinutes = leftAt.difference(visitedAt).inMinutes;
+        }
+        await latestVisitDoc.reference.update({
+          'leftAt': Timestamp.fromDate(leftAt),
+          if (stayMinutes != null) 'stayMinutes': stayMinutes,
         });
-
-        return {'type': '退勤（自動）', 'time': now};
       }
+      return {'type': '退店記録', 'time': now};
     }
-
-    if (manualClockOut == null) {
-      return {
-        'type': '未退勤あり',
-        'clockIn': clockIn,
-        'docId': unresolvedDoc.id,
-        'message': '前回の退勤が未記録です。退勤時間を入力してください。'
-      };
-    }
-
-    if (manualClockOut.isBefore(clockIn)) {
-      return {
-        'type': 'エラー',
-        'message': '退勤時間は出勤時間より後に設定してください。'
-      };
-    }
-    if (manualClockOut.isAfter(now)) {
-      return {
-        'type': 'エラー',
-        'message': '退勤時間を未来に設定することはできません。'
-      };
-    }
-
-    int overtimeMinutes = 0;
-    int shortageMinutes = 0;
-    if (matchedShift != null) {
-      final shiftStart = (matchedShift['start'] as Timestamp).toDate();
-      final shiftEnd = (matchedShift['end'] as Timestamp).toDate();
-      final scheduledMinutes = shiftEnd.difference(shiftStart).inMinutes;
-      final actualMinutes = manualClockOut.difference(clockIn).inMinutes;
-
-      if (actualMinutes > scheduledMinutes) {
-        overtimeMinutes = actualMinutes - scheduledMinutes;
-      } else if (actualMinutes < scheduledMinutes) {
-        shortageMinutes = scheduledMinutes - actualMinutes;
-      }
-    }
-
-    final totalMinutes = manualClockOut.difference(clockIn).inMinutes;
-    final nightMinutes = calculateNightMinutes(clockIn, manualClockOut);
-
-    await attendanceRef.doc(unresolvedDoc.id).update({
-      'clockOut': Timestamp.fromDate(manualClockOut),
-      'overtimeMinutes': overtimeMinutes,
-      'shortageMinutes': shortageMinutes,
-      'totalMinutes': totalMinutes,
-      'nightMinutes': nightMinutes,
-    });
-
-    return {'type': '退勤（手動）', 'time': manualClockOut};
-  }
-
-  // 🕐 通常の出勤/退勤処理へ
-  final docRef = attendanceRef.doc(dateKey);
-  final doc = await docRef.get();
-
-  final shiftQuery = await FirebaseFirestore.instance
-      .collection("shifts")
-      .where("userId", isEqualTo: userId)
-      .where("date", isEqualTo: DateFormat("yyyy-MM-dd").format(dateOnly))
-      .get();
-  final shifts = shiftQuery.docs;
-
-  if (!doc.exists) {
-    final matchedShift = shifts.firstWhereOrNull((doc) {
-      final start = (doc['start'] as Timestamp).toDate();
-      final end = (doc['end'] as Timestamp).toDate();
-      return now.isAfter(start.subtract(const Duration(hours: 5))) &&
-          now.isBefore(end.add(const Duration(hours: 5)));
-    });
-
-    await docRef.set({
-      'userId': userId,
-      'date': Timestamp.fromDate(dateOnly),
-      'clockIn': Timestamp.fromDate(now),
-      'clockOut': null,
-      'isManual': isManual,
-      'late': false,
-      'absent': false,
-      'overtimeMinutes': 0,
-      'shortageMinutes': 0,
-      'shiftId': matchedShift?.id,
-    });
-
-    if (matchedShift != null) {
-      final shiftStart = (matchedShift['start'] as Timestamp).toDate();
-      if (now.isAfter(shiftStart)) {
-        await docRef.update({'late': true});
-      } else {
-        final earlyMinutes = shiftStart.difference(now).inMinutes;
-        await docRef.update({'overtimeMinutes': earlyMinutes});
-      }
-    }
-
-    return {'type': '出勤', 'time': now};
   } else {
-    final docData = doc.data();
-    final clockIn = (docData?['clockIn'] as Timestamp).toDate();
-    final clockOut = now;
-
-    int overtimeMinutes = 0;
-    int shortageMinutes = 0;
-
-    final matchedShift = shifts.firstWhereOrNull((doc) {
-      final start = (doc['start'] as Timestamp).toDate();
-      final end = (doc['end'] as Timestamp).toDate();
-      return clockIn.isAfter(start.subtract(const Duration(hours: 5))) &&
-          clockIn.isBefore(end.add(const Duration(hours: 5)));
-    });
-
-    if (matchedShift != null) {
-      final shiftStart = (matchedShift['start'] as Timestamp).toDate();
-      final shiftEnd = (matchedShift['end'] as Timestamp).toDate();
-      final scheduledMinutes = shiftEnd.difference(shiftStart).inMinutes;
-      final actualMinutes = clockOut.difference(clockIn).inMinutes;
-
-      if (actualMinutes > scheduledMinutes) {
-        overtimeMinutes = actualMinutes - scheduledMinutes;
-      } else if (actualMinutes < scheduledMinutes) {
-        shortageMinutes = scheduledMinutes - actualMinutes;
-      }
-    }
-
-    final totalMinutes = clockOut.difference(clockIn).inMinutes;
-    final nightMinutes = calculateNightMinutes(clockIn, clockOut);
-
-    await docRef.update({
-      'clockOut': Timestamp.fromDate(clockOut),
-      'overtimeMinutes': overtimeMinutes,
-      'shortageMinutes': shortageMinutes,
-      'totalMinutes': totalMinutes,
-      'nightMinutes': nightMinutes,
-    });
-
-    return {'type': '退勤', 'time': now};
+    return {
+      'type': 'エラー',
+      'message': 'ユーザーのロールが無効です（$role）。管理者に確認してください。'
+    };
   }
 }
 
@@ -410,11 +480,7 @@ int calculateNightMinutes(DateTime clockIn, DateTime clockOut) {
       final end = next.isAfter(clockOut) ? clockOut : next;
       totalNightSeconds += end.difference(current).inSeconds;
     }
-
     current = next;
   }
-
-  // 分単位に切り捨て変換
   return totalNightSeconds ~/ 60;
 }
-

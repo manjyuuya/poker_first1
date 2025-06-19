@@ -1,5 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:poker_first/orderingSystem/menuItemEntry.dart';
+import 'package:poker_first/orderingSystem/orderEntry.dart';
+import 'package:poker_first/orderingSystem/stayingUserSelection.dart';
+import 'package:poker_first/orderingSystem/unsettledOrdersPage.dart';
 import 'package:poker_first/staffsView/attendanceCorrection.dart';
 import 'package:poker_first/staffsView/myShift.dart';
 import 'package:poker_first/staffsView/shiftRequest.dart';
@@ -43,6 +47,12 @@ class _StaffsHomeState extends State<StaffsHome> {
                     case 4:
                       _navigateTo(context, AttendanceCorrectionPage());
                       break;
+                    case 5:
+                      _navigateTo(context, StayingUserSelectionPage());
+                      break;
+                    case 6:
+                      _navigateTo(context, UnsettledOrdersPage());
+                      break;
                   }
                 },
                 itemBuilder: (context) => [
@@ -59,6 +69,14 @@ class _StaffsHomeState extends State<StaffsHome> {
                       color: Colors.black,
                       fontWeight: FontWeight.bold))),
                   PopupMenuItem(value: 4, child: Text("勤怠修正申請",
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold))),
+                  PopupMenuItem(value: 5, child: Text("注文",
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold))),
+                  PopupMenuItem(value: 6, child: Text("会計",
                       style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold))),

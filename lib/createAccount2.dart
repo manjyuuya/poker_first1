@@ -88,6 +88,7 @@ class _CreateAccount2State extends State<CreateAccount2> {
             'point': 0,
             'visitCount': "後で処理を追加、lastVisitDateも",
             'lastLogin': FieldValue.serverTimestamp(),
+            'isStaying' :false,
           });
 
           await _generateQRCodeAndSendEmail(user.uid, loginId, email);

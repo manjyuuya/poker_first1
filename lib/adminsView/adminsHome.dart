@@ -10,6 +10,7 @@ import 'package:poker_first/adminsView/shiftApproval.dart';
 import 'package:poker_first/adminsView/staffList.dart';
 import 'package:poker_first/accountingDashboard/expenseEntry.dart';
 import 'package:poker_first/accountingDashboard/salesEntry.dart';
+import 'package:poker_first/orderingSystem/unsettledOrdersPage.dart';
 import 'package:poker_first/usersView/userDetailPage.dart';
 
 class AdminsHome extends StatefulWidget {
@@ -110,7 +111,7 @@ class _AdminsHomeState extends State<AdminsHome> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text("来店回数: ${user['visitCount'] ?? '不明'}"),
-            Text("ポイント: ${user['points'] ?? '0'}"),
+            Text("ポイント: ${user['point'] ?? '0'}"),
           ],
         ),
         onTap: () {
@@ -175,6 +176,9 @@ class _AdminsHomeState extends State<AdminsHome> {
                     case 6:
                       _navigateTo(context, StaffListPage());
                       break;
+                    case 7:
+                      _navigateTo(context, UnsettledOrdersPage());
+                      break;
                   }
                 },
                 itemBuilder: (context) => const [
@@ -184,6 +188,7 @@ class _AdminsHomeState extends State<AdminsHome> {
                   PopupMenuItem(value: 4, child: Text("勤怠修正承認")),
                   PopupMenuItem(value: 5, child: Text("給与計算")),
                   PopupMenuItem(value: 6, child: Text("スタッフリスト")),
+                  PopupMenuItem(value: 7, child: Text("会計")),
                 ],
                 color: Colors.white,
                 elevation: 8,
@@ -240,7 +245,8 @@ class _AdminsHomeState extends State<AdminsHome> {
               else if (_searchResults.isEmpty)
                 const Text("検索結果がありません")
               else
-                Expanded(
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.5,
                   child: ListView.builder(
                     itemCount: _searchResults.length,
                     itemBuilder: (context, index) => _buildUserItem(_searchResults[index]),

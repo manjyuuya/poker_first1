@@ -32,6 +32,10 @@
     <string>QRコード画像を保存するためにフォトライブラリへのアクセスを許可してください。</string>
     <key>NSCameraUsageDescription</key>
     <string>カメラを使用してQRコードを読み取ります</string>
+    <key>NSCameraUsageDescription</key>
+    <string>このアプリではカメラを使用します</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>このアプリでは写真ライブラリを使用します</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>
