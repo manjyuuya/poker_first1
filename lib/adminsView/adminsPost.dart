@@ -93,55 +93,57 @@ class _PostState extends State<AdminsPost> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: "タイトル"),
-                validator: (value) => value!.isEmpty ? "タイトルを入力してください" : null,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _contentController,
-                decoration: const InputDecoration(labelText: "内容"),
-                maxLines: 3,
-                validator: (value) => value!.isEmpty ? "内容を入力してください" : null,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: _pickDate,
-                    child: const Text("日付を選択"),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(_selectedDate == null ? "未選択" : _selectedDate!.toLocal().toString().split(" ")[0]),
-                ],
-              ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField(
-                value: _selectedType,
-                items: const [
-                  DropdownMenuItem(value: "tournament", child: Text("トーナメント")),
-                  DropdownMenuItem(value: "event", child: Text("イベント")),
-                  DropdownMenuItem(value: "notice", child: Text("お知らせ")),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedType = value.toString();
-                  });
-                },
-                decoration: const InputDecoration(labelText: "投稿タイプ"),
-              ),
-              const SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _postAnnouncement,
-                  child: const Text("投稿する"),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(labelText: "タイトル"),
+                  validator: (value) => value!.isEmpty ? "タイトルを入力してください" : null,
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _contentController,
+                  decoration: const InputDecoration(labelText: "内容"),
+                  maxLines: 3,
+                  validator: (value) => value!.isEmpty ? "内容を入力してください" : null,
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    ElevatedButton(
+                      onPressed: _pickDate,
+                      child: const Text("日付を選択"),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(_selectedDate == null ? "未選択" : _selectedDate!.toLocal().toString().split(" ")[0]),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField(
+                  value: _selectedType,
+                  items: const [
+                    DropdownMenuItem(value: "tournament", child: Text("トーナメント")),
+                    DropdownMenuItem(value: "event", child: Text("イベント")),
+                    DropdownMenuItem(value: "notice", child: Text("お知らせ")),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedType = value.toString();
+                    });
+                  },
+                  decoration: const InputDecoration(labelText: "投稿タイプ"),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _postAnnouncement,
+                    child: const Text("投稿する"),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
