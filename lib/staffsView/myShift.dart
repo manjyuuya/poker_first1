@@ -123,68 +123,68 @@ class _MyShiftsPageState extends State<MyShiftsPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text("シフト表")),
-      body: Column(
-        children: [
-          /// 📅 カレンダーウィジェット
-          TableCalendar(
-            locale: 'ja_JP',
-            firstDay: DateTime(2020, 1, 1),
-            lastDay: DateTime(2099, 12, 31),
-            focusedDay: _selectedDay,
-            selectedDayPredicate: (day) => isSameDay(day, _selectedDay),
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-              });
-            },
-            eventLoader: (day) {
-              DateTime dayKey = DateTime(day.year, day.month, day.day);
-              var events = _shifts[dayKey] ?? [];
-              return events.isNotEmpty ? events : []; // 必ず空のリストを返す
-            },
-
-
-            headerStyle: HeaderStyle(
-              formatButtonVisible: false,  // この行で「2weeks」ボタンを非表示にする
-            ),
-            calendarBuilders: CalendarBuilders(
-              markerBuilder: (context, date, events) {
-
-                if (events.isEmpty) return SizedBox.shrink();
-
-                var event = events.first as Map<String, dynamic>;
-                Color markerColor = event["shiftColor"] ?? Colors.grey; // デフォルト値を設定
-
-                return Container(
-                  decoration: BoxDecoration(
-                    color: markerColor,
-                    shape: BoxShape.circle,
-                  ),
-                  width: 6,
-                  height: 6,
-                  margin: const EdgeInsets.all(4.0),
-                );
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            TableCalendar(
+              locale: 'ja_JP',
+              firstDay: DateTime(2020, 1, 1),
+              lastDay: DateTime(2099, 12, 31),
+              focusedDay: _selectedDay,
+              selectedDayPredicate: (day) => isSameDay(day, _selectedDay),
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                });
               },
-            ),
-          ),
-
-          /// 🗂 選択された日の確定・未確定シフトリスト
-          Expanded(
-            child: _shifts[DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day)] != null
-                ? ListView.builder(
-              itemCount: _shifts[DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day)]!.length,
-              itemBuilder: (context, index) {
-                var shift = _shifts[DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day)]![index];
-                return ListTile(
-                  title: Text("${shift["userName"]}：${shift["shift"]}"),
-                  subtitle: Text("承認者: ${shift["approvedBy"]}"),
-                );
+              eventLoader: (day) {
+                DateTime dayKey = DateTime(day.year, day.month, day.day);
+                var events = _shifts[dayKey] ?? [];
+                return events.isNotEmpty ? events : [];
               },
-            )
-                : Center(child: Text("この日の確定シフトはありません")),
-          ),
-        ],
+              headerStyle: HeaderStyle(
+                formatButtonVisible: false,
+              ),
+              calendarBuilders: CalendarBuilders(
+                markerBuilder: (context, date, events) {
+                  if (events.isEmpty) return SizedBox.shrink();
+                  var event = events.first as Map<String, dynamic>;
+                  Color markerColor = event["shiftColor"] ?? Colors.grey;
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: markerColor,
+                      shape: BoxShape.circle,
+                    ),
+                    width: 6,
+                    height: 6,
+                    margin: const EdgeInsets.all(4.0),
+                  );
+                },
+              ),
+            ),
+
+            // ListViewをSizedBoxで囲み、shrinkWrap & physicsを調整
+            SizedBox(
+              height: 300, // ここで高さを決める。必要に応じて調整してください。
+              child: _shifts[DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day)] != null
+                  ? ListView.builder(
+                shrinkWrap: true,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: _shifts[DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day)]!.length,
+                itemBuilder: (context, index) {
+                  var shift = _shifts[DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day)]![index];
+                  return ListTile(
+                    title: Text("${shift["userName"]}：${shift["shift"]}"),
+                    subtitle: Text("承認者: ${shift["approvedBy"]}"),
+                  );
+                },
+              )
+                  : Center(child: Text("この日の確定シフトはありません")),
+            ),
+          ],
+        ),
       ),
     );
+
   }
 }

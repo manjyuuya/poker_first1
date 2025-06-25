@@ -49,29 +49,31 @@ class _StaffDetailPageState extends State<StaffDetailPage> {
       appBar: AppBar(title: const Text('スタッフ詳細')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: '名前'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _loginIdController,
-              decoration: const InputDecoration(labelText: 'ログインID'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _hourlyWageController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: '時給（円）'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _saveStaffData,
-              child: const Text('保存'),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: '名前'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _loginIdController,
+                decoration: const InputDecoration(labelText: 'ログインID'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _hourlyWageController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: '時給（円）'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _saveStaffData,
+                child: const Text('保存'),
+              ),
+            ],
+          ),
         ),
       ),
     );

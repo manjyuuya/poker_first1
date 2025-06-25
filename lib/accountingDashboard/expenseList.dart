@@ -89,15 +89,13 @@ class _ExpenseListPageState extends State<ExpenseListPage> {
 
     if (_selectedCategory != null && _selectedCategory!.isNotEmpty) {
       filtered = filtered
-          .where((doc) =>
-      doc['category']?.toString().trim() == _selectedCategory)
+          .where((doc) => doc['category']?.toString().trim() == _selectedCategory)
           .toList();
     }
 
     if (_selectedPayment != null && _selectedPayment!.isNotEmpty) {
       filtered = filtered
-          .where((doc) =>
-      doc['paymentMethod']?.toString().trim() == _selectedPayment)
+          .where((doc) => doc['paymentMethod']?.toString().trim() == _selectedPayment)
           .toList();
     }
 
@@ -137,22 +135,86 @@ class _ExpenseListPageState extends State<ExpenseListPage> {
 
       final csvData = const ListToCsvConverter().convert([headers, ...rows]);
 
-      final directory = await getTemporaryDirectory();
-      final path = '${directory.path}/expenses_${DateFormat('yyyyMM').format(_selectedMonth)}.csv';
-      final file = File(path);
+      // 🔽 ディレクトリの取得を try-catch の中で安全に行う
+      Directory? directory;
+      try {
+        directory = await getTemporaryDirectory();
+      } catch (e) {
+        throw Exception('一時ディレクトリの取得に失敗しました: $e');
+      }
+
+      if (directory == null) {
+        throw Exception('一時ディレクトリが null です');
+      }
+
+      final fileName = 'expenses_${DateFormat('yyyyMM').format(_selectedMonth)}.csv';
+      final file = File('${directory.path}/$fileName');
+
+      // ファイルの親ディレクトリを作成（念のため）
+      if (!(await file.parent.exists())) {
+        await file.parent.create(recursive: true);
+      }
+
       await file.writeAsString(csvData);
 
-      await Share.shareXFiles([XFile(file.path)], text: '経費データ（CSV）を共有します');
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: '経費データ（CSV）を共有します',
+      );
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('CSVファイルを正常に出力しました')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('CSV出力中にエラーが発生しました: $e')),
       );
     }
   }
+
+  Future<void> _exportSingleCSV(DocumentSnapshot expense) async {
+    try {
+      final headers = ['日付', 'カテゴリ', '金額', '支払方法', 'メモ'];
+      final displayFormat = DateFormat('yyyy/MM/dd'); // 表示用
+      final fileNameFormat = DateFormat('yyyyMMdd_HHmmss'); // ファイル名用
+
+      final date = (expense['date'] as Timestamp).toDate();
+      final row = [
+        [
+          displayFormat.format(date),
+          expense['category'] ?? '',
+          expense['amount'].toString(),
+          expense['paymentMethod'] ?? '',
+          expense['memo'] ?? '',
+        ]
+      ];
+
+      final csvData = const ListToCsvConverter().convert([headers, ...row]);
+
+      final directory = await getTemporaryDirectory();
+      await Directory(directory.path).create(recursive: true);
+
+      final fileName = 'expense_${fileNameFormat.format(date)}.csv';
+      final path = '${directory.path}/$fileName';
+
+      final file = File(path);
+      await file.writeAsString(csvData);
+
+      await Share.shareXFiles([XFile(file.path)], text: '経費1件のCSVを共有します');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('個別CSVを出力しました')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('個別CSV出力中にエラーが発生しました: $e')),
+      );
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -164,11 +226,7 @@ class _ExpenseListPageState extends State<ExpenseListPage> {
           IconButton(
             icon: const Icon(Icons.download),
             tooltip: 'CSV出力',
-            onPressed: _filteredExpenses.isEmpty
-                ? null
-                : () async {
-              await _exportCSV();
-            },
+            onPressed: _filteredExpenses.isEmpty ? null : _exportCSV,
           ),
         ],
       ),
@@ -195,8 +253,8 @@ class _ExpenseListPageState extends State<ExpenseListPage> {
                         decoration: const InputDecoration(labelText: 'カテゴリを選択'),
                         items: [
                           const DropdownMenuItem(value: null, child: Text('すべて')),
-                          ..._categoryOptions.map((cat) => DropdownMenuItem(
-                              value: cat, child: Text(cat))),
+                          ..._categoryOptions.map((cat) =>
+                              DropdownMenuItem(value: cat, child: Text(cat))),
                         ],
                         onChanged: (val) {
                           setState(() => _selectedCategory = val);
@@ -211,8 +269,8 @@ class _ExpenseListPageState extends State<ExpenseListPage> {
                         decoration: const InputDecoration(labelText: '支払方法を選択'),
                         items: [
                           const DropdownMenuItem(value: null, child: Text('すべて')),
-                          ..._paymentOptions.map((pm) => DropdownMenuItem(
-                              value: pm, child: Text(pm))),
+                          ..._paymentOptions.map((pm) =>
+                              DropdownMenuItem(value: pm, child: Text(pm))),
                         ],
                         onChanged: (val) {
                           setState(() => _selectedPayment = val);
@@ -259,7 +317,7 @@ class _ExpenseListPageState extends State<ExpenseListPage> {
                   onDismissed: (_) async {
                     try {
                       await _firestore.collection('expenses').doc(id).delete();
-                      _loadData(); // 削除後再読込
+                      _loadData();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('経費を削除しました')),
                       );
@@ -273,7 +331,17 @@ class _ExpenseListPageState extends State<ExpenseListPage> {
                     leading: const Icon(Icons.money_off),
                     title: Text(expense['category'] ?? '不明なカテゴリ'),
                     subtitle: Text('${dateFormat.format(date)}\n${expense['memo'] ?? ''}'),
-                    trailing: Text('¥${expense['amount']}'),
+                    trailing: Wrap(
+                      spacing: 8,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.download_rounded),
+                          tooltip: 'CSV出力',
+                          onPressed: () => _exportSingleCSV(expense),
+                        ),
+                        Text('¥${expense['amount']}'),
+                      ],
+                    ),
                     isThreeLine: true,
                     onTap: () {
                       Navigator.push(
@@ -284,7 +352,7 @@ class _ExpenseListPageState extends State<ExpenseListPage> {
                             initialData: expense,
                           ),
                         ),
-                      ).then((_) => _loadData()); // 編集後再読み込み
+                      ).then((_) => _loadData());
                     },
                   ),
                 );

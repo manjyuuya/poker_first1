@@ -7,7 +7,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:csv/csv.dart';
 import 'package:share_plus/share_plus.dart';
 
-
 class SalesListPage extends StatefulWidget {
   const SalesListPage({super.key});
 
@@ -18,14 +17,11 @@ class SalesListPage extends StatefulWidget {
 class _SalesListPageState extends State<SalesListPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
-
   List<DocumentSnapshot> _sales = [];
   List<DocumentSnapshot> _filteredSales = [];
-
   List<String> _monthOptions = [];
   List<String> _categoryOptions = [];
   List<String> _paymentOptions = [];
-
   String? _selectedCategory;
   String? _selectedPayment;
 
@@ -75,7 +71,6 @@ class _SalesListPageState extends State<SalesListPage> {
       final data = doc.data() as Map<String, dynamic>;
       final category = data['category']?.toString().trim() ?? '';
       final payment = data['paymentMethod']?.toString().trim() ?? '';
-
       if (category.isNotEmpty) categories.add(category);
       if (payment.isNotEmpty) payments.add(payment);
     }
@@ -88,21 +83,18 @@ class _SalesListPageState extends State<SalesListPage> {
 
   void _applyFilters() {
     var filtered = _sales;
-
     if (_selectedCategory != null && _selectedCategory!.isNotEmpty) {
       filtered = filtered.where((doc) {
         final data = doc.data() as Map<String, dynamic>;
         return (data['category']?.toString().trim() ?? '') == _selectedCategory;
       }).toList();
     }
-
     if (_selectedPayment != null && _selectedPayment!.isNotEmpty) {
       filtered = filtered.where((doc) {
         final data = doc.data() as Map<String, dynamic>;
         return (data['paymentMethod']?.toString().trim() ?? '') == _selectedPayment;
       }).toList();
     }
-
     setState(() {
       _filteredSales = filtered;
     });
@@ -121,11 +113,11 @@ class _SalesListPageState extends State<SalesListPage> {
     });
     _loadData();
   }
+
   Future<void> _exportCSV() async {
     try {
-      final headers = ['日付', 'カテゴリ', '金額',  'メモ'];
+      final headers = ['日付', 'カテゴリ', '金額', 'メモ'];
       final dateFormat = DateFormat('yyyy/MM/dd');
-
       final rows = _filteredSales.map((doc) {
         final date = (doc['date'] as Timestamp).toDate();
         return [
@@ -137,14 +129,12 @@ class _SalesListPageState extends State<SalesListPage> {
       }).toList();
 
       final csvData = const ListToCsvConverter().convert([headers, ...rows]);
-
       final directory = await getTemporaryDirectory();
-      final path = '${directory.path}/expenses_${DateFormat('yyyyMM').format(_selectedMonth)}.csv';
+      final path = '${directory.path}/sales_${DateFormat('yyyyMM').format(_selectedMonth)}.csv';
       final file = File(path);
       await file.writeAsString(csvData);
 
-      await Share.shareXFiles([XFile(file.path)], text: '経費データ（CSV）を共有します');
-
+      await Share.shareXFiles([XFile(file.path)], text: '売上データ（CSV）を共有します');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('CSVファイルを正常に出力しました')),
       );
@@ -155,14 +145,44 @@ class _SalesListPageState extends State<SalesListPage> {
     }
   }
 
+  Future<void> _exportSingleSaleCSV(DocumentSnapshot doc) async {
+    try {
+      final headers = ['日付', 'カテゴリ', '金額', 'メモ'];
+      final dateFormat = DateFormat('yyyy/MM/dd');
+      final date = (doc['date'] as Timestamp).toDate();
+      final row = [
+        dateFormat.format(date),
+        doc['category'] ?? '',
+        doc['amount'].toString(),
+        doc['memo'] ?? '',
+      ];
+
+      final csvData = const ListToCsvConverter().convert([headers, row]);
+      final directory = await getTemporaryDirectory();
+      final path = '${directory.path}/sale_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
+      final file = File(path);
+      await file.writeAsString(csvData);
+
+      await Share.shareXFiles([XFile(file.path)], text: '売上データ（1件）を共有します');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('個別CSVを出力しました')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('個別出力中にエラーが発生しました: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final  dateFormat = DateFormat('yyyy/MM/dd');
+    final dateFormat = DateFormat('yyyy/MM/dd');
     int total = 0;
     for (var doc in _filteredSales) {
       final data = doc.data() as Map<String, dynamic>;
       total += (data['amount'] ?? 0) as int;
     }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('売上一覧'),
@@ -170,11 +190,7 @@ class _SalesListPageState extends State<SalesListPage> {
           IconButton(
             icon: const Icon(Icons.download),
             tooltip: 'CSV出力',
-            onPressed: _filteredSales.isEmpty
-                ? null
-                : () async {
-              await _exportCSV();
-            },
+            onPressed: _filteredSales.isEmpty ? null : _exportCSV,
           ),
         ],
       ),
@@ -210,22 +226,6 @@ class _SalesListPageState extends State<SalesListPage> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 12),
-                   /* Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedPayment,
-                        decoration: const InputDecoration(labelText: '支払方法を選択'),
-                        items: [
-                          const DropdownMenuItem(value: null, child: Text('すべて')),
-                          ..._paymentOptions.map((pm) =>
-                              DropdownMenuItem(value: pm, child: Text(pm))),
-                        ],
-                        onChanged: (val) {
-                          setState(() => _selectedPayment = val);
-                          _applyFilters();
-                        },
-                      ),
-                    ),*/
                   ],
                 ),
               ],
@@ -287,7 +287,17 @@ class _SalesListPageState extends State<SalesListPage> {
                     leading: const Icon(Icons.attach_money),
                     title: Text(sale['category'] ?? '不明なカテゴリ'),
                     subtitle: Text('${dateFormat.format(date)}\n${sale['memo'] ?? ''}'),
-                    trailing: Text('¥${sale['amount']}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('¥${sale['amount']}'),
+                        IconButton(
+                          icon: const Icon(Icons.file_download),
+                          tooltip: 'この1件をCSV出力',
+                          onPressed: () => _exportSingleSaleCSV(sale),
+                        ),
+                      ],
+                    ),
                     isThreeLine: true,
                     onTap: () {
                       Navigator.push(
@@ -304,8 +314,7 @@ class _SalesListPageState extends State<SalesListPage> {
                 );
               },
             ),
-          )
-          ,
+          ),
         ],
       ),
     );
