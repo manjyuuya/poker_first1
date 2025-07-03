@@ -1,102 +1,164 @@
+import 'dart:convert';
+import 'package:bcrypt/bcrypt.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:poker_first/login2.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'dart:io';
+
+import 'package:poker_first/login.dart';
 
 class CreateAccount extends StatefulWidget {
   const CreateAccount({super.key});
 
   @override
-  State<CreateAccount> createState() => _CreateAccountState();
+  State<CreateAccount> createState() => _CreateAccount2State();
 }
 
-class _CreateAccountState extends State<CreateAccount> {
-  final GlobalKey<ScaffoldMessengerState> _scaffoldKey =
-  GlobalKey<ScaffoldMessengerState>();
+class _CreateAccount2State extends State<CreateAccount> {
   final _formKey = GlobalKey<FormState>();
-
-  final TextEditingController _nameController = TextEditingController(); // 🔹 名前用
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _pinController = TextEditingController();
+  final TextEditingController _birthMonthDayController = TextEditingController();
 
-  bool _isPasswordVisible = false;
   bool _isLoading = false;
 
-  void _signUp() async {
+  String _hashPIN(String pin) {
+    return BCrypt.hashpw(pin, BCrypt.gensalt());
+  }
+
+  Future<bool> _isPokerNameTaken(String pokerName) async {
+    try {
+      final HttpsCallable callable =
+      FirebaseFunctions.instance.httpsCallable('checkPokerNameExists');
+      final result = await callable.call({'pokerName': pokerName});
+      return result.data['exists'] as bool;
+    } catch (e) {
+      debugPrint("Error checking PokerName: $e");
+      return false;
+    }
+  }
+
+  Future<void> _signUp() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+      setState(() => _isLoading = true);
+
+      String name = _nameController.text.trim();
+      String monthDay = _birthMonthDayController.text.trim();
+      String email = _emailController.text.trim();
+      String pin = _pinController.text.trim();
+      String loginId = "$name$monthDay";
+      String hashedPin = _hashPIN(pin);
+      String fixedPassword = "YourFixedPassword123";
+
+      if (await _isPokerNameTaken(name)) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("このPokerNameは既に使用されています")),
+        );
+        return;
+      }
 
       try {
-        // 🔹 名前の取得
-        String name = _nameController.text.trim();
-
-        // Firebase Authでアカウント作成
-        UserCredential userCredential =
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email,
+          password: fixedPassword,
         );
 
         User? user = userCredential.user;
         if (user != null) {
-          // 🔹 Firebase Authentication に名前を設定
           await user.updateDisplayName(name);
-          await user.reload(); // 変更を適用
+          await user.reload();
 
-          print("ユーザー名: ${user.displayName}"); // 確認
-
-          // 🔹 Firestoreにユーザー情報を保存
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .set({
-            'name': name, // 🔹 追加した名前フィールド
-            'email': _emailController.text.trim(),
-            'role': 'user', // 全員を "user" として登録
-            'createdAt': FieldValue.serverTimestamp(), // 登録日時を記録
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+            'uid': user.uid,
+            'pokerName': name,
+            'email': email,
+            'birthMonthDay': monthDay,
+            'loginId': loginId,
+            'hashedPin': hashedPin,
+            'role': 'user',
+            'createdAt': FieldValue.serverTimestamp(),
+            'point': 0,
+            'visitCount': "後で処理を追加、lastVisitDateも",
+            'lastLogin': FieldValue.serverTimestamp(),
+            'isStaying' :false,
           });
+
+          await _generateQRCodeAndSendEmail(user.uid, loginId, email);
         }
 
-        setState(() {
-          _isLoading = false;
-        });
-
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("アカウントが作成されました！")),
         );
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Login2()),
-        );
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Login()));
       } on FirebaseAuthException catch (e) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        String errorMessage = "登録に失敗しました";
-        if (e.code == 'email-already-in-use') {
-          errorMessage = "このメールアドレスは既に使用されています";
-        } else if (e.code == 'weak-password') {
-          errorMessage = "パスワードは6文字以上にしてください";
-        } else {
-          errorMessage = "エラー: ${e.message}";
-        }
-        print("Firebaseエラー: ${e.code} - ${e.message}");
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message ?? "登録に失敗しました")));
       }
     }
   }
 
+  Future<void> _generateQRCodeAndSendEmail(String uid, String loginId, String email) async {
+    try {
+      // QRコードデータに 'uid' を含める
+      String qrData = jsonEncode({'uid': uid, 'loginId': loginId});
+
+      // QRコード画像を生成
+      final qrValidationResult = QrValidator.validate(
+        data: qrData,
+        version: QrVersions.auto,
+        errorCorrectionLevel: QrErrorCorrectLevel.L,
+      );
+
+      if (qrValidationResult.status != QrValidationStatus.valid) {
+        throw Exception("QRコードの生成に失敗しました");
+      }
+
+      final qrCode = qrValidationResult.qrCode!;
+      final painter = QrPainter.withQr(
+        qr: qrCode,
+        color: Colors.black,
+        emptyColor: Colors.white,
+        gapless: true,
+      );
+
+      // 一時ディレクトリに保存
+      final tempDir = await getTemporaryDirectory();
+      final qrFile = File('${tempDir.path}/$loginId.png');
+
+      final picData = await painter.toImageData(300);
+      await qrFile.writeAsBytes(picData!.buffer.asUint8List());
+
+      // Firebase Storage にアップロード
+      final storageRef = FirebaseStorage.instance.ref().child('qr_codes/$loginId.png');
+      await storageRef.putFile(qrFile);
+
+      // QRコードのダウンロードURLを取得
+      String qrUrl = await storageRef.getDownloadURL();
+
+      // Firestore に QRコードURLを保存
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'qrCodeUrl': qrUrl,
+      });
+
+      // ここで QRコードの URL をメールで送信する処理を追加
+      print("QRコードが発行されました: $qrUrl");
+
+    } catch (e) {
+      print("QRコードの生成または保存に失敗: $e");
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       appBar: AppBar(title: const Text("新規登録")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -108,8 +170,6 @@ class _CreateAccountState extends State<CreateAccount> {
                 children: [
                   const Icon(Icons.person_add, size: 80, color: Colors.blue),
                   const SizedBox(height: 20),
-
-                  // 🔹 名前入力欄追加
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(
@@ -117,20 +177,9 @@ class _CreateAccountState extends State<CreateAccount> {
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.person),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "名前を入力してください";
-                      }
-                      if (value.length < 2) {
-                        return "名前は2文字以上にしてください";
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.length < 2 ? "名前は2文字以上にしてください" : null,
                   ),
-
                   const SizedBox(height: 15),
-
-                  // メールアドレス
                   TextFormField(
                     controller: _emailController,
                     decoration: const InputDecoration(
@@ -139,71 +188,41 @@ class _CreateAccountState extends State<CreateAccount> {
                       prefixIcon: Icon(Icons.email),
                     ),
                     keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "メールアドレスを入力してください";
-                      }
-                      if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-                          .hasMatch(value.trim())) {
-                        return "有効なメールアドレスを入力してください";
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.isEmpty ? "メールアドレスを入力してください" : null,
                   ),
-
                   const SizedBox(height: 15),
-
-                  // パスワード
                   TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: "Password",
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                      ),
+                    controller: _pinController,
+                    decoration: const InputDecoration(
+                      labelText: "PIN (4桁数字)",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.lock),
                     ),
-                    obscureText: !_isPasswordVisible,
+                    keyboardType: TextInputType.number,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "パスワードを入力してください";
-                      }
-                      if (value.length < 6) {
-                        return "パスワードは6文字以上にしてください";
-                      }
+                      if (value == null || value.length != 4) return "PINは4桁の数字で入力してください";
+                      if (!RegExp(r'^\d{4}$').hasMatch(value)) return "PINは数字のみで入力してください";
                       return null;
                     },
                   ),
-
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    controller: _birthMonthDayController,
+                    decoration: const InputDecoration(
+                      labelText: "BirthDay (0401)",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.calendar_today),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) => value == null || value.length != 4 ? "誕生日はMMDD形式の4桁で入力してください" : null,
+                  ),
                   const SizedBox(height: 20),
-
                   _isLoading
                       ? const CircularProgressIndicator()
                       : ElevatedButton(
                     onPressed: _signUp,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
+                    style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
                     child: const Text("新規登録"),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text("ログイン画面へ戻る"),
                   ),
                 ],
               ),

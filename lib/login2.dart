@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:poker_first/createAccount.dart';
-import 'package:poker_first/createAccount2.dart';
 import 'package:poker_first/staffsView/staffsHome.dart';
 import 'package:poker_first/usersView/usersScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -218,7 +217,7 @@ class _Login2State extends State<Login2> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => CreateAccount2()),
+                            builder: (context) => CreateAccount()),
                       );
                     },
                     child: const Text("新規登録はこちら"),

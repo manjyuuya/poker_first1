@@ -4,23 +4,40 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="66b0ef63-3e73-48d3-a2aa-282bc1041b6e" name="Changes" comment="注文&amp;会計（後に売上登録と連携）">
-      <change afterPath="$PROJECT_DIR$/lib/accountingDashboard/barChart.dart" afterDir="false" />
+    <list default="true" id="66b0ef63-3e73-48d3-a2aa-282bc1041b6e" name="Changes" comment="グラフや画面サイズ">
+      <change afterPath="$PROJECT_DIR$/functions/.eslintrc.json " afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/adminsView/createStaff.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/blindEditor.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/blindTemplateSelector.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/blindTimer.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/playerRegister.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/playersList.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/prizeDistribution.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/prizeSettings.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/resevationEdit.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/resevationList.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/resevationRegister.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/tournamentCalendar.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/tournamentDetail.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/tournamentList.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/tournamentProgress.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/tournament&amp;schedule/tournamentRegister.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/.filecache" beforeDir="false" afterPath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/.filecache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/App.framework/App" beforeDir="false" afterPath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/App.framework/App" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/app.dill" beforeDir="false" afterPath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/app.dill" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/debug_ios_bundle_flutter_assets.stamp" beforeDir="false" afterPath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/debug_ios_bundle_flutter_assets.stamp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/flutter_assets.d" beforeDir="false" afterPath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/flutter_assets.d" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/kernel_snapshot_program.d" beforeDir="false" afterPath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/kernel_snapshot_program.d" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/kernel_snapshot_program.stamp" beforeDir="false" afterPath="$PROJECT_DIR$/.dart_tool/flutter_build/c6a7f361db5d59cbd5086be95676e5c9/kernel_snapshot_program.stamp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.dart_tool/package_config.json" beforeDir="false" afterPath="$PROJECT_DIR$/.dart_tool/package_config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.dart_tool/package_config_subset" beforeDir="false" afterPath="$PROJECT_DIR$/.dart_tool/package_config_subset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.dart_tool/package_graph.json" beforeDir="false" afterPath="$PROJECT_DIR$/.dart_tool/package_graph.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/b7ae8556e050a13133281db0332bc6ff.cache.dill.track.dill" beforeDir="false" afterPath="$PROJECT_DIR$/build/b7ae8556e050a13133281db0332bc6ff.cache.dill.track.dill" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/Debug-iphoneos/App.framework/App" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/Debug-iphoneos/App.framework/App" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/Debug-iphoneos/App.framework/_CodeSignature/CodeResources" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/Debug-iphoneos/App.framework/_CodeSignature/CodeResources" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/ios/Debug-iphoneos/App.framework/flutter_assets/NOTICES.Z" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/Debug-iphoneos/App.framework/flutter_assets/NOTICES.Z" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/Debug-iphoneos/App.framework/flutter_assets/kernel_blob.bin" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/Debug-iphoneos/App.framework/flutter_assets/kernel_blob.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/App.framework/App" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/App.framework/App" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/App.framework/_CodeSignature/CodeResources" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/App.framework/_CodeSignature/CodeResources" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/App.framework/flutter_assets/NOTICES.Z" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/App.framework/flutter_assets/NOTICES.Z" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/App.framework/flutter_assets/kernel_blob.bin" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/App.framework/flutter_assets/kernel_blob.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/FBLPromises.framework/FBLPromises" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/FBLPromises.framework/FBLPromises" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/FirebaseAppCheckInterop.framework/FirebaseAppCheckInterop" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/Frameworks/FirebaseAppCheckInterop.framework/FirebaseAppCheckInterop" afterDir="false" />
@@ -61,6 +78,7 @@
       <change beforePath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/embedded.mobileprovision" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/Debug-iphoneos/Runner.app/embedded.mobileprovision" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/App.framework/App" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/App.framework/App" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/App.framework/_CodeSignature/CodeResources" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/App.framework/_CodeSignature/CodeResources" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/App.framework/flutter_assets/NOTICES.Z" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/App.framework/flutter_assets/NOTICES.Z" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/App.framework/flutter_assets/kernel_blob.bin" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/App.framework/flutter_assets/kernel_blob.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/FBLPromises.framework/FBLPromises" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/FBLPromises.framework/FBLPromises" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/FirebaseAppCheckInterop.framework/FirebaseAppCheckInterop" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/Frameworks/FirebaseAppCheckInterop.framework/FirebaseAppCheckInterop" afterDir="false" />
@@ -99,15 +117,14 @@
       <change beforePath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/_CodeSignature/CodeResources" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/_CodeSignature/CodeResources" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/__preview.dylib" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/__preview.dylib" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/embedded.mobileprovision" beforeDir="false" afterPath="$PROJECT_DIR$/build/ios/iphoneos/Runner.app/embedded.mobileprovision" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/accountingDashboard/accountingDashboardPage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/accountingDashboard/accountingDashboardPage.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/accountingDashboard/expenseList.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/accountingDashboard/expenseList.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/accountingDashboard/salesList.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/accountingDashboard/salesList.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/adminsView/adminsPost.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/adminsView/adminsPost.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/adminsView/staffDetail.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/adminsView/staffDetail.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/staffsView/myShift.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/staffsView/myShift.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/staffsView/staffPost.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/staffsView/staffPost.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/functions/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/functions/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/functions/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/functions/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/functions/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/functions/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/adminsView/adminsHome.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/adminsView/adminsHome.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/createAccount.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/createAccount.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/createAccount2.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/login.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/login.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/login2.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/login2.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -150,6 +167,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/lib" />
       <recent name="$PROJECT_DIR$/lib/accountingDashboard" />
     </key>
   </component>
@@ -238,7 +256,14 @@
       <option name="project" value="LOCAL" />
       <updated>1750335251411</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="グラフや画面サイズ">
+      <created>1750810393302</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1750810393302</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -261,7 +286,8 @@
     <MESSAGE value="勤怠修正処理" />
     <MESSAGE value="会計ダッシュボード" />
     <MESSAGE value="注文&amp;会計（後に売上登録と連携）" />
-    <option name="LAST_COMMIT_MESSAGE" value="注文&amp;会計（後に売上登録と連携）" />
+    <MESSAGE value="グラフや画面サイズ" />
+    <option name="LAST_COMMIT_MESSAGE" value="グラフや画面サイズ" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
