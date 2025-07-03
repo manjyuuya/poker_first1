@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:poker_first/accountingDashboard/accountingDashboardPage.dart';
 import 'package:poker_first/adminsView/adminAttendanceScan.dart';
-import 'package:poker_first/adminsView/adminsPost.dart';
 import 'package:poker_first/adminsView/correctionApproval.dart';
 import 'package:poker_first/adminsView/attendanceSearch.dart';
+import 'package:poker_first/adminsView/createStaff.dart';
 import 'package:poker_first/adminsView/salaryCalculation.dart';
 import 'package:poker_first/adminsView/shiftApproval.dart';
 import 'package:poker_first/adminsView/staffList.dart';
-import 'package:poker_first/accountingDashboard/expenseEntry.dart';
-import 'package:poker_first/accountingDashboard/salesEntry.dart';
 import 'package:poker_first/orderingSystem/unsettledOrdersPage.dart';
+import 'package:poker_first/tournament&schedule/resevationList.dart';
+import 'package:poker_first/tournament&schedule/tournamentList.dart';
 import 'package:poker_first/usersView/userDetailPage.dart';
 
 class AdminsHome extends StatefulWidget {
@@ -179,6 +179,15 @@ class _AdminsHomeState extends State<AdminsHome> {
                     case 7:
                       _navigateTo(context, UnsettledOrdersPage());
                       break;
+                    case 8:
+                      _navigateTo(context, TournamentListPage());
+                      break;
+                    case 9:
+                      _navigateTo(context, ReservationListPage());
+                      break;
+                    case 10:
+                      _navigateTo(context, CreateStaffPage());
+                      break;
                   }
                 },
                 itemBuilder: (context) => const [
@@ -189,6 +198,9 @@ class _AdminsHomeState extends State<AdminsHome> {
                   PopupMenuItem(value: 5, child: Text("給与計算")),
                   PopupMenuItem(value: 6, child: Text("スタッフリスト")),
                   PopupMenuItem(value: 7, child: Text("会計")),
+                  PopupMenuItem(value: 8, child: Text("トーナメント一覧")),
+                  PopupMenuItem(value: 9, child: Text("トーナメント予約一覧")),
+                  PopupMenuItem(value: 10, child: Text("スタッフ登録")),
                 ],
                 color: Colors.white,
                 elevation: 8,

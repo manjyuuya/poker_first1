@@ -216,6 +216,80 @@ export const deleteShiftOnDenial = functions.firestore
        console.log("No status change to rejected. Skipping deletion.");
      }
    });
+   export const calculateTournamentPrizes = functions.pubsub
+     .schedule("every 1 minutes")
+     .onRun(async (context) => {
+       const now = admin.firestore.Timestamp.now();
+
+       const tournamentsSnap = await admin.firestore()
+         .collection("tournaments")
+         .where("registerClose", "<=", now)
+         .where("prizeCalculated", "==", false)
+         .get();
+
+       const batch = admin.firestore().batch();
+
+       for (const doc of tournamentsSnap.docs) {
+         const data = doc.data();
+         const tournamentRef = doc.ref;
+
+         const entryFee = data.entryFee || 0;
+         const reentryFee = data.reentryFee || 0;
+         const addonFee = data.addonFee || 0;
+
+         // prizeTemplateId から割合を取得する
+         const prizeTemplateId = data.prizeTemplateId;
+         let entryPercentage = 100;
+         let reentryPercentage = 100;
+         let addonPercentage = 0;
+
+         if (prizeTemplateId) {
+           const prizeTemplateDoc = await admin.firestore()
+             .collection("prizeSettings")
+             .doc(prizeTemplateId)
+             .get();
+
+           if (prizeTemplateDoc.exists) {
+             const templateData = prizeTemplateDoc.data();
+             entryPercentage = (templateData.entryPercentage !== undefined && templateData.entryPercentage !== null)
+               ? templateData.entryPercentage : 100;
+             reentryPercentage = (templateData.reentryPercentage !== undefined && templateData.reentryPercentage !== null)
+               ? templateData.reentryPercentage : 100;
+             addonPercentage = (templateData.addonPercentage !== undefined && templateData.addonPercentage !== null)
+               ? templateData.addonPercentage : 0;
+           }
+         }
+
+         const playersSnap = await tournamentRef.collection("players").get();
+
+         let totalEntry = 0;
+         let totalReentry = 0;
+         let totalAddon = 0;
+
+         playersSnap.forEach(playerDoc => {
+           totalEntry += 1;
+           totalReentry += playerDoc.data().reentryCount || 0;
+           totalAddon += playerDoc.data().addonCount || 0;
+         });
+
+         const entryTotal = totalEntry * entryFee * (entryPercentage / 100);
+         const reentryTotal = totalReentry * reentryFee * (reentryPercentage / 100);
+         const addonTotal = totalAddon * addonFee * (addonPercentage / 100);
+
+         const totalPrize = Math.floor(entryTotal + reentryTotal + addonTotal);
+
+         batch.update(tournamentRef, {
+           prizeAmount: totalPrize,
+           prizeCalculated: true
+         });
+
+         console.log(`Calculated prize for ${doc.id}: ${totalPrize}`);
+       }
+
+       await batch.commit();
+       console.log("All tournaments processed.");
+       return null;
+     });
   /*// 出勤予定時刻の30分前に通知を送信
  export const sendShiftReminder = functions.pubsub
      .schedule("every 24 hours")  // 1日1回実行される（任意の時間を設定可能）
