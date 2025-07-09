@@ -55,6 +55,25 @@ class _TournamentRegisterPageState extends State<TournamentRegisterPage> {
       return;
     }
 
+    final selectedBreak = breakOptions[_selectedBreakIndex!];
+    final blindStructure = int.tryParse(_blindStructureController.text.trim()) ?? 0;
+
+    if (blindStructure <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ブラインド構成時間を正しく入力してください')),
+      );
+      return;
+    }
+
+    if (selectedBreak['afterMinutes']! % blindStructure != 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('休憩開始タイミングはブラインド構成時間（$blindStructure分）の倍数にしてください'),
+        ),
+      );
+      return;
+    }
+
     final docRef = FirebaseFirestore.instance.collection('tournaments').doc();
     final startDateTime = DateTime(
       _selectedDate.year,
@@ -72,8 +91,6 @@ class _TournamentRegisterPageState extends State<TournamentRegisterPage> {
       _registerCloseTime.minute,
     );
 
-    final selectedBreak = breakOptions[_selectedBreakIndex!];
-
     await docRef.set({
       'name': _nameController.text.trim(),
       'date': _selectedDate,
@@ -84,7 +101,7 @@ class _TournamentRegisterPageState extends State<TournamentRegisterPage> {
       'addonStack': int.tryParse(_addonStackController.text.trim()) ?? 0,
       'startTime': startDateTime,
       'registerClose': registerCloseDateTime,
-      'blindStructure': int.tryParse(_blindStructureController.text.trim()) ?? 0,
+      'blindStructure': blindStructure,
       'blindLevels': _blindLevels,
       'prize': _prizeController.text.trim(),
       'prizeCalculated': false,
@@ -105,6 +122,7 @@ class _TournamentRegisterPageState extends State<TournamentRegisterPage> {
       Navigator.pop(context);
     }
   }
+
 
   Future<void> _openBlindEditor() async {
     final result = await Navigator.push(

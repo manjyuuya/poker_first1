@@ -1,13 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:poker_first/orderingSystem/menuItemEntry.dart';
-import 'package:poker_first/orderingSystem/orderEntry.dart';
 import 'package:poker_first/orderingSystem/stayingUserSelection.dart';
 import 'package:poker_first/orderingSystem/unsettledOrdersPage.dart';
 import 'package:poker_first/staffsView/attendanceCorrection.dart';
 import 'package:poker_first/staffsView/myShift.dart';
 import 'package:poker_first/staffsView/shiftRequest.dart';
-import 'package:poker_first/staffsView/staffPost.dart';
 
 class StaffsHome extends StatefulWidget {
   const StaffsHome({super.key});
@@ -41,9 +38,9 @@ class _StaffsHomeState extends State<StaffsHome> {
                     case 2:
                       _navigateTo(context, MyShiftsPage());
                       break;
-                    case 3:
+                   /* case 3:
                       _navigateTo(context, StaffPost());
-                      break;
+                      break;*/
                     case 4:
                       _navigateTo(context, AttendanceCorrectionPage());
                       break;

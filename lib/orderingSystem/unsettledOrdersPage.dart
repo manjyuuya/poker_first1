@@ -10,7 +10,7 @@ class UnsettledOrdersPage extends StatelessWidget {
     return FirebaseFirestore.instance
         .collection('orders')
         .where('isSettled', isEqualTo: false)
-        .orderBy('timestamp', descending: true)
+        .orderBy('orderingAt', descending: true)
         .snapshots();
   }
 

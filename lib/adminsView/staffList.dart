@@ -12,7 +12,7 @@ class StaffListPage extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
-            .where('role', isEqualTo: 'staff')
+            .where('role', isEqualTo: 'user')
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {

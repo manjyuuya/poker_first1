@@ -124,7 +124,7 @@ class _PrizeDistributionPageState extends State<PrizeDistributionPage> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${index + 1}位: ¥$amount'),
+                      Text('${index + 1}位: $amount'),
                       Row(
                         children: [
                           Expanded(

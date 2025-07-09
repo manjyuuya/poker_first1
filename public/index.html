@@ -1,89 +1,157 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
+<head>
+  <title>LIFF Firebase Login</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3/build/jwt-decode.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
 
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/11.4.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/11.4.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/11.4.0/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/11.4.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/11.4.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/11.4.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/11.4.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/11.4.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/11.4.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/11.4.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
 
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
-    </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
+</head>
+<body>
+<h2>LINEログイン中...</h2>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAYhXAbSYBGAyd2bs3cDII2Yx7VoCD5Fm0", // ご自身のFirebaseプロジェクトのAPIキーに置き換えてください
+    authDomain: "poker-first-5f294.firebaseapp.com",
+    projectId: "poker-first-5f294",
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  // index.html
+
+async function main() {
+    // ... (main関数の内容はそのまま) ...
+    try {
+        console.log("LIFF初期化開始");
+        await liff.init({ liffId: "2007691508-Or2XYlPv" }); // ご自身のLIFF IDに置き換えてください
+        console.log("LIFF初期化完了");
+    } catch (error) {
+        console.error("LIFFの初期化に失敗しました:", error);
+        alert("LINE連携の準備に失敗しました。ページを再読み込みするか、しばらくしてからお試しください。詳細: " + error.message);
+        return;
+    }
+
+    if (!liff.isLoggedIn()) {
+        console.log("LINE未ログインのためログイン処理開始");
+        liff.login();
+        return;
+    }
+    console.log("LINEログイン済み");
+
+    try {
+        const idToken = liff.getIDToken();
+        if (!idToken) {
+            alert("LINE IDトークンの取得に失敗しました。再度お試しください。");
+            console.error("liff.getIDToken() returned null or empty when trying to call Cloud Function.");
+            return;
+        }
+        console.log("IDトークン取得 (for Cloud Function):", idToken ? "成功" : "失敗または空");
 
         try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
+            const decodedToken = jwt_decode(idToken);
+            console.log("Decoded ID Token:", decodedToken);
+            const expirationTime = new Date(decodedToken.exp * 1000);
+            const issueTime = new Date(decodedToken.iat * 1000);
+            const currentTime = new Date();
+            console.log("ID Token Issued At (iat):", issueTime.toISOString(), `(${issueTime})`);
+            console.log("ID Token Expires At (exp):", expirationTime.toISOString(), `(${expirationTime})`);
+            console.log("Current Time (at token check):", currentTime.toISOString(), `(${currentTime})`);
+            if (currentTime.getTime() > expirationTime.getTime()) {
+                console.warn("★★★ Warning: ID Token appears to be expired immediately after retrieval! ★★★");
+            } else {
+                const remainingTimeSeconds = (expirationTime.getTime() - currentTime.getTime()) / 1000;
+                const remainingMinutes = Math.floor(remainingTimeSeconds / 60);
+                const remainingSecondsPart = Math.floor(remainingTimeSeconds % 60);
+                console.log(`ID Token remaining validity: approx. ${remainingMinutes} minutes and ${remainingSecondsPart} seconds`);
+            }
         } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+            console.error("Error decoding ID token or calculating expiry:", e);
         }
-      });
-    </script>
-  </body>
+
+        console.log("Cloud Functions呼び出し開始");
+        console.log("Sending idToken to Cloud Function:", idToken);
+        console.log("Type of idToken:", typeof idToken);
+
+        const response = await fetch("https://us-central1-poker-first-5f294.cloudfunctions.net/getFirebaseCustomToken", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken: idToken }),
+        });
+        console.log("Cloud Functions呼び出し完了");
+
+        if (!response.ok) {
+            let errorMessage = "カスタムトークンの取得に失敗しました。";
+            try {
+                const errorData = await response.json();
+                if (errorData && errorData.error_description) {
+                    errorMessage += `\nサーバーからのメッセージ: ${errorData.error_description}`;
+                } else if (errorData && errorData.error) {
+                    errorMessage += `\nサーバーからのエラー: ${errorData.error}`;
+                } else {
+                    errorMessage += `\nステータス: ${response.status}`;
+                }
+            } catch (e) {
+                errorMessage += `\nステータス: ${response.status} (レスポンス解析エラー: ${e.message})`;
+            }
+            alert(errorMessage);
+            console.error(errorMessage);
+            return;
+        }
+
+        const data = await response.json();
+        if (!data || !data.firebaseToken) {
+            alert("サーバーから有効なFirebaseトークンが返されませんでした。");
+            console.error("サーバーから有効なFirebaseトークンが返されませんでした。", data);
+            return;
+        }
+        console.log("Firebaseカスタムトークン取得成功:", data.firebaseToken);
+        await firebase.auth().signInWithCustomToken(data.firebaseToken);
+        alert("Firebaseログイン完了！");
+        console.log("Firebaseログイン成功！ User:", firebase.auth().currentUser);
+
+// Firestoreにユーザー情報を登録
+const user = firebase.auth().currentUser;
+if (user) {
+  const decoded = liff.getDecodedIDToken();  // LIFFから取得したIDトークンの中身（名前や画像）
+
+  const userDoc = {
+    uid: user.uid,
+    name: decoded.name || "名前未設定",
+    pictureUrl: decoded.picture || "",
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+
+  await firebase.firestore().collection("users").doc(user.uid).set(userDoc, { merge: true });
+  console.log("Firestoreにユーザー情報を登録:", userDoc);
+}
+
+
+    } catch (error) {
+        console.error("Cloud Functions呼び出しまたはFirebaseログインでエラー:", error);
+        let detailedErrorMessage = "サーバーとの通信またはログイン処理でエラーが発生しました。時間をおいて再度お試しください。";
+        if (error.message) {
+            detailedErrorMessage += `\n詳細: ${error.message}`;
+        }
+        if (error.response && typeof error.response.text === 'function') {
+            try {
+                const errorText = await error.response.text();
+                detailedErrorMessage += `\nサーバーレスポンス: ${errorText}`;
+            } catch (e) {
+                detailedErrorMessage += "\nサーバーレスポンスの取得に失敗しました。";
+            }
+        }
+        alert(detailedErrorMessage);
+        return;
+    }
+}
+
+// ★★★ DOMContentLoadedを待ってmainを実行 ★★★
+document.addEventListener('DOMContentLoaded', main);
+
+</script>
+</body>
 </html>
