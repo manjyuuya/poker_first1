@@ -1,5 +1,8 @@
 import * as functions from "firebase-functions";
 import admin from "firebase-admin";
+import axios from "axios";
+import { URLSearchParams } from "url";
+
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -33,6 +36,8 @@ export const deleteShiftOnDenial = functions.firestore
 
     return null;
   });
+
+
   export const checkPokerNameExists = functions.https.onCall(async (data, context) => {
     if (!context.auth) {
       throw new functions.https.HttpsError(
@@ -216,7 +221,7 @@ export const deleteShiftOnDenial = functions.firestore
        console.log("No status change to rejected. Skipping deletion.");
      }
    });
-   export const calculateTournamentPrizes = functions.pubsub
+   /*export const calculateTournamentPrizes = functions.pubsub
      .schedule("every 1 minutes")
      .onRun(async (context) => {
        const now = admin.firestore.Timestamp.now();
@@ -289,7 +294,86 @@ export const deleteShiftOnDenial = functions.firestore
        await batch.commit();
        console.log("All tournaments processed.");
        return null;
-     });
+     });*/
+
+    const allowedOrigin = "https://poker-first-5f294.web.app";
+
+    // LINEチャネルID
+    const LINE_CHANNEL_ID = "2007691508";
+
+    export const getFirebaseCustomToken = functions.https.onRequest(async (req, res) => {
+      res.set("Access-Control-Allow-Origin", allowedOrigin);
+      res.set("Access-Control-Allow-Credentials", "true");
+
+      if (req.method === "OPTIONS") {
+        res.set("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.set("Access-Control-Max-Age", "3600");
+        res.status(204).send("");
+        return;
+      }
+
+      if (req.method !== "POST") {
+        return res.status(405).send({ error: "Method Not Allowed" });
+      }
+
+      const idToken = req.body.idToken;
+      if (!idToken) {
+        console.error("Missing idToken. Request body:", req.body);
+        return res.status(400).send({ error: "Missing idToken" });
+      }
+
+      try {
+        const params = new URLSearchParams();
+        params.append("id_token", idToken);
+        params.append("client_id", LINE_CHANNEL_ID);
+
+        const response = await axios.post(
+          "https://api.line.me/oauth2/v2.1/verify",
+          params,
+          { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+        );
+
+        // --- 推奨追加1: aud チェック ---
+        if (response.data.aud !== LINE_CHANNEL_ID) {
+          console.error("aud mismatch: expected", LINE_CHANNEL_ID, "but got", response.data.aud);
+          return res.status(401).send({ error: "Invalid client_id (aud mismatch)." });
+        }
+
+        // --- 推奨追加2: exp チェック ---
+        const exp = response.data.exp;
+        if (!exp || Date.now() > exp * 1000) {
+          console.warn("IDトークンの有効期限が切れています。exp:", exp);
+          return res.status(401).send({ error: "LINE ID token has expired." });
+        }
+
+        const lineUserId = response.data.sub;
+        const firebaseToken = await admin.auth().createCustomToken(lineUserId);
+        return res.status(200).send({ firebaseToken });
+
+      } catch (error) {
+        console.error(
+          "Error verifying LINE ID token or creating custom token:",
+          error.response && error.response.data ? error.response.data : error.message,
+          error
+        );
+
+        let statusCode = 500;
+        let errorMessage = "LINE IDトークンの検証またはFirebaseカスタムトークンの作成に失敗しました";
+
+        if (error.response && error.response.data && error.response.data.error_description) {
+          errorMessage = error.response.data.error_description;
+        } else if (error.response && error.response.data && error.response.data.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        return res.status(statusCode).send({ error: `LINE API Error: ${errorMessage}` });
+      }
+    });
+
+
   /*// 出勤予定時刻の30分前に通知を送信
  export const sendShiftReminder = functions.pubsub
      .schedule("every 24 hours")  // 1日1回実行される（任意の時間を設定可能）

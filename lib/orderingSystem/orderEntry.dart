@@ -53,7 +53,7 @@ class _OrderEntryPageState extends State<OrderEntryPage> {
     await _firestore.collection('orders').add({
       'menuItems': _selectedItems,
       'totalPrice': totalPrice,
-      'timestamp': FieldValue.serverTimestamp(),
+      'orderingAt': FieldValue.serverTimestamp(),
       'userId': widget.userId,
       'userName': widget.userName,
       'isSettled': false,

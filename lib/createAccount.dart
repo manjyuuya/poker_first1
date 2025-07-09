@@ -84,7 +84,6 @@ class _CreateAccount2State extends State<CreateAccount> {
             'role': 'user',
             'createdAt': FieldValue.serverTimestamp(),
             'point': 0,
-            'visitCount': "後で処理を追加、lastVisitDateも",
             'lastLogin': FieldValue.serverTimestamp(),
             'isStaying' :false,
           });

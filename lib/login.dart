@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:poker_first/adminsView/adminsHome.dart';
 import 'package:poker_first/createAccount.dart';
 import 'package:poker_first/staffsView/staffsHome.dart';
-import 'package:poker_first/usersView/usersScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
@@ -100,12 +99,9 @@ class _LoginState extends State<Login> {
       await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
         'lastLogin': FieldValue.serverTimestamp(),
       });
-      print('lastLoginが更新されました');
-    } catch (e) {
-      print('lastLoginの更新失敗: $e');
-    }
-  }
 
+    } catch (e) {}
+  }
 
   Future<void> _saveUserUID(String uid) async {
     final prefs = await SharedPreferences.getInstance();
@@ -118,9 +114,6 @@ class _LoginState extends State<Login> {
     Widget nextScreen;
 
     switch (role) {
-      case 'user':
-        nextScreen = UsersScreen();
-        break;
       case 'staff':
         nextScreen = StaffsHome();
         break;

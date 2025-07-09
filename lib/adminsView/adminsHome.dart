@@ -11,7 +11,7 @@ import 'package:poker_first/adminsView/staffList.dart';
 import 'package:poker_first/orderingSystem/unsettledOrdersPage.dart';
 import 'package:poker_first/tournament&schedule/resevationList.dart';
 import 'package:poker_first/tournament&schedule/tournamentList.dart';
-import 'package:poker_first/usersView/userDetailPage.dart';
+import 'package:poker_first/adminsView/userDetailPage.dart';
 
 class AdminsHome extends StatefulWidget {
   const AdminsHome({super.key});

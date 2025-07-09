@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -22,22 +24,30 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>このアプリではカメラを使用します</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>アプリでの認証のためにFace IDを使用します。</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>このアプリでは写真ライブラリを使用します</string>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>通知を受け取るために必要です。</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
-	<key>NSFaceIDUsageDescription</key>
-    <string>アプリでの認証のためにFace IDを使用します。</string>
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>QRコード画像を保存するためにフォトライブラリへのアクセスを許可してください。</string>
-    <key>NSCameraUsageDescription</key>
-    <string>カメラを使用してQRコードを読み取ります</string>
-    <key>NSCameraUsageDescription</key>
-    <string>このアプリではカメラを使用します</string>
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>このアプリでは写真ライブラリを使用します</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>UIStatusBarStyle</key>
+	<string></string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -51,17 +61,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>FirebaseAppDelegateProxyEnabled</key>
-    <false/>
-    <key>UIBackgroundModes</key>
-    <array>
-      <string>remote-notification</string>
-    </array>
-    <key>NSUserNotificationUsageDescription</key>
-    <string>通知を受け取るために必要です。</string>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
 </dict>
 </plist>

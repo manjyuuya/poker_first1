@@ -19,6 +19,7 @@ class _TournamentProgressPageState extends State<TournamentProgressPage> {
   List<dynamic> blindLevels = [];
   int blindStructure = 20;
   int currentLevel = 1;
+  int lastLevelBeforeBreak = 1;
   Map<String, dynamic> currentBlind = {};
   Timer? _timer;
   String countdownLabel = 'スタートまで';
@@ -53,15 +54,13 @@ class _TournamentProgressPageState extends State<TournamentProgressPage> {
       blindLevels = data['blindLevels'] ?? [];
       blindStructure = (data['blindStructure'] ?? 20).toInt();
       currentLevel = (data['currentLevel'] ?? 1).toInt();
+      lastLevelBeforeBreak = currentLevel;
       isOpen = data['isOpen'] ?? true;
       if (blindLevels.isNotEmpty && currentLevel >= 1 && currentLevel <= blindLevels.length) {
         currentBlind = Map<String, dynamic>.from(blindLevels[currentLevel - 1]);
       }
     });
 
-    if (isOpen) {
-      _startTimer();
-    }
     if (data['breakTime'] != null) {
       final bt = Map<String, dynamic>.from(data['breakTime']);
       breakTime = {
@@ -71,6 +70,10 @@ class _TournamentProgressPageState extends State<TournamentProgressPage> {
     } else {
       breakTime = null;
     }
+
+    if (isOpen) {
+      _startTimer();
+    }
   }
 
   void _startTimer() {
@@ -79,6 +82,18 @@ class _TournamentProgressPageState extends State<TournamentProgressPage> {
       if (startTime == null || blindLevels.isEmpty || !mounted) return;
 
       final now = DateTime.now();
+
+      if (now.isBefore(startTime!)) {
+        setState(() {
+          countdownLabel = 'スタートまで';
+          remainingDuration = startTime!.difference(now);
+          currentLevel = 0;
+          currentBlind = {};
+          isOnBreak = false;
+        });
+        return;
+      }
+
       final elapsedSeconds = now.difference(startTime!).inSeconds;
       final elapsedMinutes = elapsedSeconds ~/ 60;
 
@@ -96,56 +111,56 @@ class _TournamentProgressPageState extends State<TournamentProgressPage> {
           elapsedMinutes >= breakStart &&
           elapsedMinutes < nextBreakStart;
 
+      final totalBreakMinutesPassed = (breakTime != null)
+          ? (elapsedMinutes ~/ (breakCycleMin + breakDurationMin)) * breakDurationMin
+          : 0;
+
+      final adjustedElapsedMinutes = elapsedMinutes - totalBreakMinutesPassed;
+      final newLevel = (adjustedElapsedMinutes ~/ blindStructure) + 1;
+
       if (isInBreak) {
-        isOnBreak = true;
-        remainingDuration = Duration(seconds: (nextBreakStart * 60) - elapsedSeconds);
-      } else {
-        if (isOnBreak) isOnBreak = false;
-
-        int totalBreakMinutesPassed = (breakTime != null)
-            ? (elapsedMinutes ~/ (breakCycleMin + breakDurationMin)) * breakDurationMin
-            : 0;
-
-        final adjustedElapsedMinutes = elapsedMinutes - totalBreakMinutesPassed;
-        int newLevel = (adjustedElapsedMinutes ~/ blindStructure) + 1;
-
-        if (newLevel < 1) newLevel = 1;
-
-        // 画面上の表示更新
         setState(() {
-          currentLevel = newLevel;
-          currentBlind = (newLevel <= blindLevels.length)
-              ? Map<String, dynamic>.from(blindLevels[newLevel - 1])
+          countdownLabel = '休憩終了まで';
+          remainingDuration = Duration(seconds: (nextBreakStart * 60) - elapsedSeconds);
+          isOnBreak = true;
+          currentLevel = lastLevelBeforeBreak;
+          currentBlind = (currentLevel <= blindLevels.length)
+              ? Map<String, dynamic>.from(blindLevels[currentLevel - 1])
               : Map<String, dynamic>.from(blindLevels.last);
         });
+        return;
+      }
 
-        // Firestore更新は必要な場合のみ
-        if (newLevel <= blindLevels.length && newLevel != tournamentDoc?['currentLevel']) {
-          await FirebaseFirestore.instance
-              .collection('tournaments')
-              .doc(widget.tournamentId)
-              .update({
-            'currentLevel': newLevel,
-            'blind': blindLevels[newLevel - 1],
-          });
+      isOnBreak = false;
+      lastLevelBeforeBreak = newLevel;
 
-          await _fetchTournament();
-        } else {
-          final nextLevelStart = startTime!.add(
-            Duration(minutes: newLevel * blindStructure + cycle * breakDurationMin),
-          );
-          setState(() {
-            countdownLabel = '次のレベルまで';
-            remainingDuration = nextLevelStart.difference(now);
-          });
-        }
+      setState(() {
+        countdownLabel = '次のレベルまで';
+        currentLevel = newLevel;
+        currentBlind = (newLevel <= blindLevels.length)
+            ? Map<String, dynamic>.from(blindLevels[newLevel - 1])
+            : Map<String, dynamic>.from(blindLevels.last);
+
+        final nextLevelStart = startTime!.add(
+          Duration(minutes: newLevel * blindStructure + cycle * breakDurationMin),
+        );
+        remainingDuration = nextLevelStart.difference(now);
+      });
+
+      if (newLevel <= blindLevels.length && newLevel != tournamentDoc?['currentLevel']) {
+        await FirebaseFirestore.instance
+            .collection('tournaments')
+            .doc(widget.tournamentId)
+            .update({
+          'currentLevel': newLevel,
+          'blind': blindLevels[newLevel - 1],
+        });
       }
     });
   }
 
-
   String _formatDuration(Duration d) {
-    final hours = d.inHours.remainder(60).toString().padLeft(2, '0');
+    final hours = d.inHours.toString().padLeft(2, '0');
     final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$hours:$minutes:$seconds';
@@ -227,6 +242,11 @@ class _TournamentProgressPageState extends State<TournamentProgressPage> {
             if (isOpen)
               Text('$countdownLabel: ${_formatDuration(remainingDuration)}',
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            if (isOnBreak)
+              const Text(
+                '現在は休憩中です',
+                style: TextStyle(fontSize: 16, color: Colors.blue),
+              ),
             const Spacer(),
             if (prizeCalculated)
               ElevatedButton.icon(
@@ -243,7 +263,7 @@ class _TournamentProgressPageState extends State<TournamentProgressPage> {
                   );
                 },
               ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             if (isOpen && registerClose != null && now.isAfter(registerClose))
               ElevatedButton.icon(
                 icon: const Icon(Icons.flag),
